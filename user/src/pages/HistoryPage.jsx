@@ -6,7 +6,7 @@ import { Clock, Calendar, MessageSquare, Trash2, Download, FileText, Search, Che
 
 const HistoryPage = () => {
   const { user } = useAuth();
-  const { sessions, deleteSession: deleteChatSession } = useChat();
+  const { sessions = [], deleteSession: deleteChatSession = () => { } } = useChat() || {};
   const [apiSessions, setApiSessions] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('date-desc');
@@ -32,15 +32,15 @@ const HistoryPage = () => {
   const downloadTranscript = (session) => {
     let transcript = '';
     if (session.type === 'api') {
-      transcript = session.messages.map((r, i) => 
-        `Question ${i+1}: ${r.question}\nYour Answer: ${r.userAnswer}\nFeedback: ${r.feedback}\nScore: ${r.score}/10\n`
+      transcript = session.messages.map((r, i) =>
+        `Question ${i + 1}: ${r.question}\nYour Answer: ${r.userAnswer}\nFeedback: ${r.feedback}\nScore: ${r.score}/10\n`
       ).join('\n-------------------\n\n');
     } else {
       transcript = session.messages
         .map((msg) => `${msg.sender === 'ai' ? 'AI Interviewer' : 'You'}: ${msg.text}`)
         .join('\n\n');
     }
-    
+
     const blob = new Blob([transcript], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -140,7 +140,7 @@ const HistoryPage = () => {
           </div>
         )}
       </div>
-      
+
       {sessions.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -160,73 +160,73 @@ const HistoryPage = () => {
       ) : (
         <div className="flex flex-col gap-6">
           <div className="grid gap-6">
-          <AnimatePresence mode="popLayout">
-          {currentSessions.map((session, index) => (
-            <motion.div 
-              key={session.id} 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ delay: index * 0.05 }}
-              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-            >
-              <div className="flex flex-col md:flex-row justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
-                      {session.course || 'General'}
-                    </span>
-                    <span className="text-gray-400 text-sm flex items-center gap-1">
-                      <Calendar size={14} />
-                      {formatDate(session.date)}
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">
-                    Mock Interview Session
-                  </h3>
-                  
-                  <div className="flex items-center gap-6 text-sm text-gray-600">
-                    {session.type === 'api' ? (
-                      <div className="flex items-center gap-2 text-indigo-600 font-medium">
-                        <Award size={16} />
-                        <span>Score: {session.totalScore}</span>
+            <AnimatePresence mode="popLayout">
+              {currentSessions.map((session, index) => (
+                <motion.div
+                  key={session.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex flex-col md:flex-row justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                          {session.course || 'General'}
+                        </span>
+                        <span className="text-gray-400 text-sm flex items-center gap-1">
+                          <Calendar size={14} />
+                          {formatDate(session.date)}
+                        </span>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Clock size={16} className="text-gray-400" />
-                        <span>Duration: {formatDuration(session.duration)}</span>
+
+                      <h3 className="text-lg font-bold text-gray-800 mb-2">
+                        Mock Interview Session
+                      </h3>
+
+                      <div className="flex items-center gap-6 text-sm text-gray-600">
+                        {session.type === 'api' ? (
+                          <div className="flex items-center gap-2 text-indigo-600 font-medium">
+                            <Award size={16} />
+                            <span>Score: {session.totalScore}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Clock size={16} className="text-gray-400" />
+                            <span>Duration: {formatDuration(session.duration)}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <MessageSquare size={16} className="text-gray-400" />
+                          <span>{session.messages?.length || 0} {session.type === 'api' ? 'Questions' : 'Messages'}</span>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <MessageSquare size={16} className="text-gray-400" />
-                      <span>{session.messages?.length || 0} {session.type === 'api' ? 'Questions' : 'Messages'}</span>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <button
+                        onClick={() => downloadTranscript(session)}
+                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        title="Download Transcript"
+                      >
+                        <Download size={20} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(session.id, session.type)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete Session"
+                      >
+                        <Trash2 size={20} />
+                      </button>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <button 
-                    onClick={() => downloadTranscript(session)}
-                    className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                    title="Download Transcript"
-                  >
-                    <Download size={20} />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(session.id, session.type)}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Delete Session"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-          </AnimatePresence>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
-          
+
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-4 mt-4">
               <button

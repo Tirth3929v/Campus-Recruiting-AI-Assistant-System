@@ -1,19 +1,28 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Users, Briefcase, BookOpen, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, BookOpen, LogOut, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from './axiosInstance';
 
 const EmployeeLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    axiosInstance.get('/admin/pending').then(r => setPendingCount(r.data.length)).catch(() => { });
+  }, []);
+
   const navItems = [
     { path: '/employee', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { path: '/employee/users', label: 'Manage Users', icon: Users },
     { path: '/employee/jobs', label: 'Manage Jobs', icon: Briefcase },
     { path: '/employee/courses', label: 'Course Builder', icon: BookOpen },
+    { path: '/employee/pending', label: 'Pending Approvals', icon: Clock, badge: pendingCount },
   ];
 
   return (
@@ -47,6 +56,11 @@ const EmployeeLayout = () => {
                 <div className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}>
                   <Icon size={20} />
                   <span className="font-medium">{item.label}</span>
+                  {item.badge > 0 && (
+                    <span className="ml-auto bg-amber-400 text-slate-900 text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center animate-pulse">
+                      {item.badge}
+                    </span>
+                  )}
                 </div>
               </Link>
             );

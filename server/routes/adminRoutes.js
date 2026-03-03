@@ -77,4 +77,89 @@ router.put('/tickets/:id', async (req, res) => {
     }
 });
 
+// DELETE /api/admin/users/:id — remove a user
+router.delete('/users/:id', async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json({ message: 'User deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// PUT /api/admin/users/:id/role — change user role
+router.put('/users/:id/role', async (req, res) => {
+    try {
+        const { role } = req.body;
+        if (!['student', 'company', 'admin'].includes(role)) {
+            return res.status(400).json({ message: 'Invalid role' });
+        }
+        const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET /api/admin/jobs — all jobs for admin view
+router.get('/jobs', async (req, res) => {
+    try {
+        const jobs = await Job.find().sort({ createdAt: -1 });
+        res.json(jobs);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// DELETE /api/admin/jobs/:id — remove a job posting
+router.delete('/jobs/:id', async (req, res) => {
+    try {
+        const job = await Job.findByIdAndDelete(req.params.id);
+        if (!job) return res.status(404).json({ message: 'Job not found' });
+        res.json({ message: 'Job deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET /api/admin/pending — list employees awaiting approval
+router.get('/pending', async (req, res) => {
+    try {
+        const pendingUsers = await User.find({ role: 'employee', isVerified: false })
+            .select('-password')
+            .sort({ createdAt: -1 });
+        res.json(pendingUsers);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// PUT /api/admin/users/:id/approve — approve an employee
+router.put('/users/:id/approve', async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { isVerified: true },
+            { new: true }
+        ).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json({ message: `${user.name} approved successfully`, user });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// DELETE /api/admin/users/:id/reject — reject & delete a pending employee
+router.delete('/users/:id/reject', async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json({ message: `${user.name}'s registration was rejected and removed` });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 module.exports = router;

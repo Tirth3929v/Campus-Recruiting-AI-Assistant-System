@@ -3,22 +3,19 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 
-// Layout
-import AdminLayout from './pages/AdminLayout';
-
-// Pages & Components (Employee)
-import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard'; // (Now labeled EmployeeDashboard internally)
-import ManageUsers from './pages/ManageUsers';
-import ManageJobs from './pages/ManageJobs';
-import CourseBuilder from './pages/CourseBuilder';
+// Layout & Route Guards
+import EmployeeLayout from './pages/EmployeeLayout';
 import ProtectedRoute from './pages/ProtectedRoute';
-import EmployeeLayout from './pages/AdminLayout';    // (Renamed internally)
 
-// Pages & Components (Admin)
-import AdminLogin from './pages/AdminLogin';
-import AdminPanel from './pages/AdminPanel';
-import AdminProtectedRoute from './pages/AdminProtectedRoute';
+// Public pages
+import Login from './pages/Login';
+import EmployeeRegister from './pages/EmployeeRegister';
+
+// Employee pages
+import EmployeeDashboard from './pages/EmployeeDashboard';
+import CourseBuilder from './pages/CourseBuilder';
+import JobBoard from './pages/JobBoard';
+import MyProfile from './pages/MyProfile';
 
 const App = () => {
   return (
@@ -26,10 +23,9 @@ const App = () => {
       <AuthProvider>
         <ThemeProvider>
           <Routes>
-
             {/* ---------- Public ---------- */}
             <Route path="/login" element={<Login />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/employee/register" element={<EmployeeRegister />} />
 
             {/* ---------- Employee Panel ---------- */}
             <Route
@@ -40,21 +36,11 @@ const App = () => {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<AdminDashboard />} />
-              <Route path="users" element={<ManageUsers />} />
-              <Route path="jobs" element={<ManageJobs />} />
+              <Route index element={<EmployeeDashboard />} />
               <Route path="courses" element={<CourseBuilder />} />
+              <Route path="jobs" element={<JobBoard />} />
+              <Route path="profile" element={<MyProfile />} />
             </Route>
-
-            {/* ---------- Admin Panel ---------- */}
-            <Route
-              path="/admin"
-              element={
-                <AdminProtectedRoute>
-                  <AdminPanel />
-                </AdminProtectedRoute>
-              }
-            />
 
             {/* ---------- Redirects ---------- */}
             <Route path="/" element={<Navigate to="/employee" replace />} />

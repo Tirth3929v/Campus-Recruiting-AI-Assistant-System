@@ -506,8 +506,8 @@ const Dashboard = () => {
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                                 <Activity size={18} className="text-purple-600 dark:text-purple-400" /> Skill Analysis
                             </h3>
-                            <div className="flex-1 min-h-[280px]">
-                                <ResponsiveContainer width="100%" height="100%" minHeight={280}>
+                            <div className="flex-1 w-full min-h-[280px]">
+                                <ResponsiveContainer width="100%" height={280}>
                                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data?.skills || defaultSkills}>
                                         <PolarGrid stroke={theme === 'dark' ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"} />
                                         <PolarAngleAxis dataKey="subject" tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 12, fontWeight: 600 }} />

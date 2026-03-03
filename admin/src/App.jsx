@@ -14,6 +14,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ManageUsers from './pages/ManageUsers';
 import ManageJobs from './pages/ManageJobs';
 import ManageCandidates from './pages/ManageCandidates';
+import PendingApprovals from './pages/PendingApprovals';
 
 const App = () => {
   return (
@@ -33,6 +34,7 @@ const App = () => {
                 <Route path="users" element={<ManageUsers />} />
                 <Route path="jobs" element={<ManageJobs />} />
                 <Route path="candidates" element={<ManageCandidates />} />
+                <Route path="pending" element={<PendingApprovals />} />
               </Route>
             </Route>
 

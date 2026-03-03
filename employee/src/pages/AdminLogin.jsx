@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -22,17 +20,34 @@ const AdminLogin = () => {
     setIsLoading(true);
     setError('');
 
-    // Simulate API call / Authentication Logic
-    setTimeout(() => {
-      // Use AuthContext login
-      const result = login(formData.email, formData.password);
-      if (result.success && result.user.role === 'admin') {
-        navigate('/admin');
-      } else {
-        setError('Invalid email or password');
+    try {
+      const res = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Invalid email or password');
         setIsLoading(false);
+        return;
       }
-    }, 1500);
+
+      if (data.user?.role !== 'admin') {
+        setError('Access denied. This portal is for administrators only.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Store token and navigate to admin panel
+      if (data.token) localStorage.setItem('token', data.token);
+      navigate('/admin');
+    } catch (err) {
+      setError('Failed to connect to the server. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   return (

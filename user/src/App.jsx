@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ChatProvider } from './context/ChatContext';
 import UserLayout from './layouts/UserLayout';
 import Dashboard from './pages/Dashboard';
 import InterviewPage from './pages/InterviewPage';
@@ -20,35 +21,37 @@ const App = () => {
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <ThemeProvider>
-          <Routes>
-            {/* ---------- Public ---------- */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/signup" element={<SignUp />} />
+          <ChatProvider>
+            <Routes>
+              {/* ---------- Public ---------- */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/signup" element={<SignUp />} />
 
-            {/* ---------- Student Portal (with persistent sidebar layout) ---------- */}
-            <Route
-              path="/student"
-              element={
-                <ProtectedRoute>
-                  <UserLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="interview" element={<InterviewPage />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="jobs" element={<JobsPage />} />
-              <Route path="courses" element={<CoursesPage />} />
-              <Route path="courses/:id" element={<CourseViewer />} />
-              <Route path="history" element={<HistoryPage />} />
-            </Route>
+              {/* ---------- Student Portal (with persistent sidebar layout) ---------- */}
+              <Route
+                path="/student"
+                element={
+                  <ProtectedRoute>
+                    <UserLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="interview" element={<InterviewPage />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="jobs" element={<JobsPage />} />
+                <Route path="courses" element={<CoursesPage />} />
+                <Route path="courses/:id" element={<CourseViewer />} />
+                <Route path="history" element={<HistoryPage />} />
+              </Route>
 
-            {/* ---------- Redirects ---------- */}
-            <Route path="/" element={<Navigate to="/student/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
-          </Routes>
+              {/* ---------- Redirects ---------- */}
+              <Route path="/" element={<Navigate to="/student/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
+            </Routes>
+          </ChatProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
