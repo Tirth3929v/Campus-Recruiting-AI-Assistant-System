@@ -45,7 +45,41 @@ const courseSchema = new mongoose.Schema({
   price: {
     type: String,
     default: 'Free'
-  }
+  },
+  thumbnail: {
+    type: String,
+    default: 'https://via.placeholder.com/300'
+  },
+  status: {
+    type: String,
+    enum: ['draft', 'pending_approval', 'published'],
+    default: 'draft'
+  },
+  createdBy: {
+    type: String, // employee email or name
+    default: 'Unknown'
+  },
+  chapters: [{
+    chapterId: {
+      type: String,
+      required: true
+    },
+    title: {
+      type: String,
+      required: true
+    },
+    content: {
+      type: String, // Expect HTML/Markdown
+      required: true
+    },
+    videoUrl: {
+      type: String // Optional
+    },
+    order: {
+      type: Number,
+      required: true
+    }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Course', courseSchema);

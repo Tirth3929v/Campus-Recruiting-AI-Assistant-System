@@ -84,7 +84,7 @@ const UserDashboard = () => {
         {/* Quick Access Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <QuickAccessCard to="/course/1" icon={<BookOpen size={24} className="text-blue-400" />} title="Continue Learning" desc="Resume your last lesson" color="bg-blue-500/10 border-blue-500/20" />
-          <QuickAccessCard to="/interview-room" icon={<Bot size={24} className="text-purple-400" />} title="AI Interview Room" desc="Practice with AI Coach" color="bg-purple-500/10 border-purple-500/20" />
+          <QuickAccessCard to="/interview" icon={<Bot size={24} className="text-purple-400" />} title="AI Interview Room" desc="Practice with AI Coach" color="bg-purple-500/10 border-purple-500/20" />
           <QuickAccessCard to="/jobs" icon={<Briefcase size={24} className="text-green-400" />} title="Job Portal" desc="Explore new opportunities" color="bg-green-500/10 border-green-500/20" />
           <QuickAccessCard to="/premium" icon={<CreditCard size={24} className="text-orange-400" />} title="Go Premium" desc="Unlock exclusive features" color="bg-orange-500/10 border-orange-500/20" />
         </div>

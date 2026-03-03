@@ -7,5 +7,6 @@ const interviewController = require('../controllers/interviewController');
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post('/upload', upload.single('video'), interviewController.uploadInterview);
+router.post('/start', interviewController.startInterview);
 
 module.exports = router;

@@ -64,3 +64,19 @@ exports.uploadInterview = async (req, res) => {
     res.status(500).json({ message: "Upload failed", error: error.message });
   }
 };
+
+exports.startInterview = async (req, res) => {
+  try {
+    // Generate a unique interview ID (In a real app, this would be a database ID)
+    const interviewId = `int_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    res.status(200).json({
+      success: true,
+      message: "Interview session initialized",
+      interviewId: interviewId
+    });
+  } catch (error) {
+    console.error("Start Interview Error:", error);
+    res.status(500).json({ message: "Failed to start interview", error: error.message });
+  }
+};

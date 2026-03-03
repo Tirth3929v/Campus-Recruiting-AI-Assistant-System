@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock, LogIn, Sparkles, Rocket, Target, BookOpen, Users, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+const features = [
+  { icon: Rocket, title: "AI-Powered Interviews", desc: "Practice with our intelligent AI interviewer" },
+  { icon: Target, title: "Skill Tracking", desc: "Radar charts track your growth over time" },
+  { icon: BookOpen, title: "Curated Courses", desc: "Learn from industry-expert content" },
+  { icon: Users, title: "Leaderboards", desc: "Compete with peers globally" },
+];
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,17 +22,12 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
       const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        credentials: 'include' // Important: Accept the HTTP-only cookie
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData), credentials: 'include'
       });
-
       const data = await res.json();
-
       if (res.ok) {
         if (data.token) localStorage.setItem('token', data.token);
         await checkAuth();
@@ -33,87 +35,171 @@ const Login = () => {
       } else {
         setError(data.error || 'Login failed');
       }
-    } catch (err) {
-      setError('Failed to connect to server');
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError('Failed to connect to server'); }
+    finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 font-sans selection:bg-purple-500/30">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0B0F19] flex font-sans selection:bg-purple-500/30 overflow-hidden">
+
+      {/* ═══ Ambient Background ═════════════════════════════ */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-900/20 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[120px]" />
+        <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] rounded-full bg-violet-500/10 dark:bg-violet-900/15 blur-[150px] animate-float" />
+        <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 dark:bg-blue-900/15 blur-[150px] animate-float" style={{ animationDelay: '-3s' }} />
+        <div className="absolute top-[40%] left-[50%] w-[30%] h-[30%] rounded-full bg-pink-500/5 dark:bg-pink-900/10 blur-[120px] animate-morph-blob" />
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-md bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-8 shadow-2xl"
+      {/* ═══ Left Panel — Feature Showcase ══════════════════ */}
+      <motion.div
+        initial={{ opacity: 0, x: -60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        className="hidden lg:flex w-1/2 relative z-10 flex-col justify-center px-16 xl:px-20"
       >
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-gray-400">Sign in to continue your interview preparation</p>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-              <input 
-                type="email" 
-                required
-                autoComplete="email"
-                className="w-full bg-gray-800/50 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-              />
+        <motion.div
+          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+        >
+          <div className="flex items-center gap-2 mb-8">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+              <Sparkles size={20} className="text-white" />
             </div>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Campus<span className="text-gradient-vivid">Recruit</span>
+            </span>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-              <input 
-                type="password" 
-                required
-                autoComplete="current-password"
-                className="w-full bg-gray-800/50 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-              />
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : <><LogIn size={18} /> Sign In</>}
-          </button>
-        </form>
-
-        <div className="mt-8 text-center">
-          <p className="text-gray-400 text-sm">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-purple-400 hover:text-purple-300 font-bold transition-colors">
-              Create Account
-            </Link>
+          <h2 className="text-4xl xl:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
+            Your AI-Powered<br />
+            <span className="text-gradient-vivid">Placement Assistant</span>
+          </h2>
+          <p className="text-lg text-gray-500 dark:text-gray-400 mb-12 max-w-md">
+            Practice interviews, build skills, and land your dream campus placement.
           </p>
+        </motion.div>
+
+        <div className="space-y-4">
+          {features.map((feature, i) => (
+            <motion.div key={i}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 + i * 0.15, duration: 0.6 }}
+              whileHover={{ x: 8, scale: 1.02 }}
+              className="flex items-center gap-4 p-4 rounded-xl glass-card cursor-default group"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500/10 to-blue-500/10 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform">
+                <feature.icon size={22} />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">{feature.title}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{feature.desc}</p>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </motion.div>
+
+      {/* ═══ Right Panel — Login Form ═══════════════════════ */}
+      <div className="flex-1 flex items-center justify-center p-6 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-md glass-panel rounded-3xl p-8 lg:p-10"
+        >
+          {/* Mobile brand */}
+          <div className="lg:hidden flex items-center gap-2 mb-6 justify-center">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+              <Sparkles size={16} className="text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">
+              Campus<span className="text-gradient-vivid">Recruit</span>
+            </span>
+          </div>
+
+          <div className="text-center mb-8">
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
+            >
+              Welcome Back
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-gray-500 dark:text-gray-400"
+            >
+              Sign in to continue your interview preparation
+            </motion.p>
+          </div>
+
+          {error && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm text-center font-medium">
+              {error}
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }} className="space-y-2">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email</label>
+              <div className="relative group">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors" size={18} />
+                <input type="email" required autoComplete="email" placeholder="Enter your email"
+                  className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+              </div>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }} className="space-y-2">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Password</label>
+              <div className="relative group">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors" size={18} />
+                <input type="password" required autoComplete="current-password" placeholder="Enter your password"
+                  className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+              </div>
+            </motion.div>
+
+            <motion.button
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(139, 92, 246, 0.3)" }}
+              whileTap={{ scale: 0.97 }}
+              type="submit" disabled={loading}
+              className="w-full py-4 btn-gradient rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 text-lg"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+                  Signing in...
+                </span>
+              ) : (
+                <>
+                  <LogIn size={20} /> Sign In
+                  <ArrowRight size={18} className="ml-1" />
+                </>
+              )}
+            </motion.button>
+          </form>
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+            className="mt-8 text-center">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              Don't have an account?{' '}
+              <Link to="/register" className="text-purple-600 dark:text-purple-400 hover:text-purple-500 font-bold transition-colors">
+                Create Account
+              </Link>
+            </p>
+          </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import UserLayout from './layouts/UserLayout';
 import Dashboard from './pages/Dashboard';
 import InterviewPage from './pages/InterviewPage';
 import Login from './pages/Login';
@@ -11,42 +12,40 @@ import ProtectedRoute from './pages/ProtectedRoute';
 import ProfilePage from './pages/ProfilePage';
 import JobsPage from './pages/JobsPage';
 import CoursesPage from './pages/CoursesPage';
-// import HistoryPage from './pages/HistoryPage'; // Create this for the history route
+import CourseViewer from './pages/CourseViewer';
+import HistoryPage from './pages/HistoryPage';
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <ThemeProvider>
           <Routes>
-            {/* Public Routes */}
+            {/* ---------- Public ---------- */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/signup" element={<SignUp />} />
 
-            {/* Student Routes Group */}
-            <Route path="/student">
-              <Route path="dashboard" element={
-                <ProtectedRoute><Dashboard /></ProtectedRoute>
-              } />
-              <Route path="interview" element={
-                <ProtectedRoute><InterviewPage /></ProtectedRoute>
-              } />
-              <Route path="profile" element={
-                <ProtectedRoute><ProfilePage /></ProtectedRoute>
-              } />
-              <Route path="jobs" element={
-                <ProtectedRoute><JobsPage /></ProtectedRoute>
-              } />
-              <Route path="courses" element={
-                <ProtectedRoute><CoursesPage /></ProtectedRoute>
-              } />
-              <Route path="history" element={
-                <ProtectedRoute><div>History Page Placeholder</div></ProtectedRoute>
-              } />
+            {/* ---------- Student Portal (with persistent sidebar layout) ---------- */}
+            <Route
+              path="/student"
+              element={
+                <ProtectedRoute>
+                  <UserLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="interview" element={<InterviewPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="jobs" element={<JobsPage />} />
+              <Route path="courses" element={<CoursesPage />} />
+              <Route path="courses/:id" element={<CourseViewer />} />
+              <Route path="history" element={<HistoryPage />} />
             </Route>
 
-            {/* Default Redirects */}
+            {/* ---------- Redirects ---------- */}
             <Route path="/" element={<Navigate to="/student/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
           </Routes>

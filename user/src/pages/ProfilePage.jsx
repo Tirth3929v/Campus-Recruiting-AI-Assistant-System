@@ -1,22 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { User, Mail, FileText, Save, Upload, CheckCircle, Loader2, BookOpen, Briefcase } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { User, Mail, FileText, Save, Upload, CheckCircle, Loader2, BookOpen, Briefcase, Sparkles, Award, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+// ─── Scroll Reveal ────────────────────────────────────────────
+const Reveal = ({ children, delay = 0, direction = "up", className = "" }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-40px" });
+  return (
+    <motion.div ref={ref} className={className}
+      initial={{ opacity: 0, y: direction === "up" ? 30 : 0, x: direction === "left" ? -30 : direction === "right" ? 30 : 0, filter: "blur(4px)" }}
+      animate={isInView ? { opacity: 1, y: 0, x: 0, filter: "blur(0px)" } : {}}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}>
+      {children}
+    </motion.div>
+  );
+};
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
-  
+
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    course: '',
-    bio: '',
-    skills: '',
-    resumeName: '',
-    resume: '' // Base64 string
+    name: '', email: '', course: '', bio: '', skills: '', resumeName: '', resume: ''
   });
 
   useEffect(() => {
@@ -30,37 +38,21 @@ const ProfilePage = () => {
       if (res.ok) {
         const data = await res.json();
         setFormData({
-          name: data.name || '',
-          email: data.email || '',
-          course: data.course || '',
-          bio: data.bio || '',
-          skills: data.skills || '',
-          resumeName: data.resumeName || '',
-          resume: data.resume || ''
+          name: data.name || '', email: data.email || '', course: data.course || '',
+          bio: data.bio || '', skills: data.skills || '', resumeName: data.resumeName || '', resume: data.resume || ''
         });
       }
-    } catch (error) {
-      console.error("Failed to load profile", error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { console.error("Failed to load profile", error); }
+    finally { setLoading(false); }
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert("File size too large (Max 5MB)");
-        return;
-      }
-      
+      if (file.size > 5 * 1024 * 1024) { alert("File size too large (Max 5MB)"); return; }
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({
-          ...prev,
-          resumeName: file.name,
-          resume: reader.result
-        }));
+        setFormData(prev => ({ ...prev, resumeName: file.name, resume: reader.result }));
       };
       reader.readAsDataURL(file);
     }
@@ -70,127 +62,208 @@ const ProfilePage = () => {
     e.preventDefault();
     setSaving(true);
     setMessage(null);
-
     try {
       const res = await fetch('http://localhost:5000/api/user', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        credentials: 'include'
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData), credentials: 'include'
       });
-
       if (res.ok) {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
-        setTimeout(() => setMessage(null), 3000);
+        setTimeout(() => setMessage(null), 4000);
       } else {
         setMessage({ type: 'error', text: 'Failed to update profile.' });
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Server error occurred.' });
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
+
+  const skillTags = formData.skills ? formData.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <Loader2 className="animate-spin text-purple-500" size={40} />
+      <div className="min-h-full flex items-center justify-center">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4">
+          <Loader2 className="animate-spin text-purple-500" size={40} />
+          <p className="text-gray-500 text-sm animate-pulse">Loading your profile...</p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6 font-sans">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400">
-              Profile Settings
-            </h1>
-            <p className="text-gray-400 mt-1">Manage your personal information and resume</p>
-          </div>
-          <button onClick={() => navigate('/student/dashboard')} className="text-sm text-gray-400 hover:text-white transition-colors">
-            Back to Dashboard
-          </button>
-        </div>
+    <div className="min-h-full relative">
+      <div className="ambient-bg" />
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-8 shadow-xl"
-        >
-          {message && (
-            <div className={`mb-6 p-4 rounded-xl flex items-center gap-2 ${message.type === 'success' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
-              {message.type === 'success' ? <CheckCircle size={20} /> : <Loader2 size={20} />}
-              {message.text}
+      <div className="relative z-10 max-w-4xl mx-auto space-y-8">
+        {/* ── Header ────────────────────────────────── */}
+        <Reveal>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+                Profile <span className="text-gradient-vivid">Settings</span>
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your personal information and resume</p>
             </div>
-          )}
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/student/dashboard')}
+              className="text-sm font-semibold text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+              Back to Dashboard
+            </motion.button>
+          </div>
+        </Reveal>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* ── Avatar Card ──────────────────────────── */}
+        <Reveal delay={0.1}>
+          <div className="glass-panel rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6">
+            <motion.div
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              className="h-24 w-24 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white text-4xl font-bold shadow-xl shadow-violet-500/30 flex-shrink-0"
+            >
+              {(formData.name?.[0] || 'U').toUpperCase()}
+            </motion.div>
+            <div className="text-center sm:text-left">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{formData.name || 'Your Name'}</h2>
+              <p className="text-gray-500 dark:text-gray-400">{formData.email}</p>
+              <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                {formData.course && (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">
+                    <BookOpen size={12} /> {formData.course}
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20">
+                  <Award size={12} /> Student
+                </span>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+
+        {/* ── Toast Notification ───────────────────── */}
+        {message && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`flex items-center justify-between gap-3 p-4 rounded-xl border ${message.type === 'success'
+              ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+              : 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400'
+              }`}
+          >
+            <div className="flex items-center gap-2">
+              {message.type === 'success' ? <CheckCircle size={18} /> : <X size={18} />}
+              <span className="font-semibold text-sm">{message.text}</span>
+            </div>
+            <button onClick={() => setMessage(null)} className="hover:opacity-60 transition-opacity">
+              <X size={16} />
+            </button>
+          </motion.div>
+        )}
+
+        {/* ── Form ────────────────────────────────── */}
+        <Reveal delay={0.2}>
+          <motion.form onSubmit={handleSubmit}
+            className="glass-panel rounded-2xl p-8 space-y-6">
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Full Name</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                  <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-purple-500 outline-none" />
+                <div className="relative group">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors" size={18} />
+                  <input type="text" required value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all" />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email (Read Only)</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                  <input type="email" disabled value={formData.email} className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-gray-400 cursor-not-allowed" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input type="email" disabled value={formData.email}
+                    className="w-full bg-gray-100 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-gray-400 cursor-not-allowed" />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Course / Major</label>
-                <div className="relative">
-                  <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                  <input type="text" value={formData.course} onChange={e => setFormData({...formData, course: e.target.value})} className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-purple-500 outline-none" />
+                <div className="relative group">
+                  <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors" size={18} />
+                  <input type="text" value={formData.course}
+                    onChange={e => setFormData({ ...formData, course: e.target.value })}
+                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all" />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Skills (Comma separated)</label>
-                <div className="relative">
-                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                  <input type="text" value={formData.skills} onChange={e => setFormData({...formData, skills: e.target.value})} placeholder="React, Node.js, Java..." className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-purple-500 outline-none" />
+                <div className="relative group">
+                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors" size={18} />
+                  <input type="text" value={formData.skills}
+                    onChange={e => setFormData({ ...formData, skills: e.target.value })}
+                    placeholder="React, Node.js, Java..."
+                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all" />
                 </div>
+                {/* Skill Tags Visualization */}
+                {skillTags.length > 0 && (
+                  <motion.div className="flex flex-wrap gap-2 mt-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    {skillTags.map((tag, i) => (
+                      <motion.span key={tag}
+                        initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-gradient-to-r from-violet-100 to-blue-100 dark:from-violet-500/10 dark:to-blue-500/10 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-500/20"
+                      >
+                        <Sparkles size={10} className="mr-1" /> {tag}
+                      </motion.span>
+                    ))}
+                  </motion.div>
+                )}
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Bio</label>
-              <textarea rows="4" value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})} className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white focus:ring-2 focus:ring-purple-500 outline-none resize-none" placeholder="Tell us about yourself..." />
+              <textarea rows="4" value={formData.bio}
+                onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none transition-all"
+                placeholder="Tell us about yourself..." />
             </div>
 
+            {/* Resume Upload */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Resume Upload</label>
-              <div className="border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:bg-white/5 transition-colors relative">
-                <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                <Upload className="mx-auto text-purple-500 mb-2" size={32} />
-                <p className="text-sm text-gray-300 font-medium">{formData.resumeName || "Click to upload resume (PDF/DOC)"}</p>
-                <p className="text-xs text-gray-500 mt-1">Max file size: 5MB</p>
-              </div>
+              <motion.div whileHover={{ scale: 1.01, borderColor: "rgba(139, 92, 246, 0.4)" }}
+                className="border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-8 text-center hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-all relative cursor-pointer group">
+                <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <Upload className="mx-auto text-purple-500 group-hover:scale-110 transition-transform mb-3" size={32} />
+                <p className="text-sm text-gray-700 dark:text-gray-300 font-semibold">
+                  {formData.resumeName || "Click to upload resume (PDF/DOC)"}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">Max file size: 5MB</p>
+              </motion.div>
 
               {formData.resume && formData.resume.startsWith('data:application/pdf') && (
-                <div className="mt-4">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Resume Preview</label>
-                  <div className="h-[500px] w-full rounded-xl overflow-hidden border border-white/10 bg-gray-800">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  className="mt-4">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Preview</label>
+                  <div className="h-[400px] w-full rounded-xl overflow-hidden border border-gray-200 dark:border-white/10 glass-card">
                     <iframe src={formData.resume} className="w-full h-full" title="Resume Preview" />
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
 
-            <button type="submit" disabled={saving} className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+            <motion.button type="submit" disabled={saving}
+              whileHover={{ scale: 1.02, boxShadow: "0 15px 30px rgba(139, 92, 246, 0.3)" }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full py-4 btn-gradient rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 text-lg"
+            >
               {saving ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> Save Changes</>}
-            </button>
-          </form>
-        </motion.div>
+            </motion.button>
+          </motion.form>
+        </Reveal>
       </div>
     </div>
   );
