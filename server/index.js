@@ -12,16 +12,25 @@ const StudentProfile = require('./models/StudentProfile');
 const AIInterviewSession = require('./models/AIInterviewSession');
 const StudyResource = require('./models/StudyResource');
 const LegacyInterview = require('./models/LegacyInterview');
+const Enrollment = require('./models/Enrollment');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Triggering nodemon restart to re-establish MongoDB connection
 
 // Middleware
+app.get('env'); // Force env check
+app.use((req, res, next) => {
+    console.log(`📡 [${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177'],
     credentials: true
 }));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // Initialize Gemini
@@ -31,31 +40,56 @@ const model = genAI.getGenerativeModel({
     systemInstruction: "You are a helpful, encouraging Placement Assistant and Technical Tutor for Campus Recruit. Answer questions about coding, interviews, and platform navigation concisely."
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/campus_recruit')
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+// Connect to MongoDB using robust db.js
+const connectDB = require('./config/db');
 
-// ─── Auth Middleware ──────────────────────────────────────────
-const verifyToken = (req, res, next) => {
-    const token = req.cookies.token;
-    if (!token) return res.status(401).json({ error: 'Access denied' });
+// Main Startup function
+const startServer = async () => {
     try {
-        const verified = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_123');
-        req.user = verified;
-        next();
+        await connectDB();
+        
+        // Start HTTP Server
+        server.listen(PORT, () => {
+            console.log(`🚀 Server fully initialized and listening on port ${PORT}`);
+        });
     } catch (err) {
-        res.status(400).json({ error: 'Invalid token' });
+        console.error('💥 FATAL: Server failed to start:', err.message);
+        process.exit(1);
     }
 };
 
-// Optional auth — sets req.user if token present, but doesn't block
+// Main Startup logic moved to the bottom of the file to ensure 'server' is defined
+
+
+// ─── Auth Middleware ──────────────────────────────────────────
+const verifyToken = (req, res, next) => {
+    let token = req.cookies.token;
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) return res.status(401).json({ error: 'Access denied - No token provided' });
+    
+    try {
+        const verified = jwt.verify(token, process.env.JWT_SECRET || 'campus_recruit_jwt_secret_2026_secure_key');
+        req.user = verified;
+        next();
+    } catch (err) {
+        console.error('JWT Verification Error:', err.message);
+        res.status(401).json({ error: 'Not authorized, token failed' });
+    }
+};
+
 const optionalAuth = (req, res, next) => {
-    const token = req.cookies.token;
+    let token = req.cookies.token;
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
     if (token) {
         try {
-            req.user = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_123');
-        } catch (err) { /* ignore */ }
+            req.user = jwt.verify(token, process.env.JWT_SECRET || 'campus_recruit_jwt_secret_2026_secure_key');
+        } catch (err) { /* ignore silently for optional */ }
     }
     next();
 };
@@ -90,6 +124,29 @@ app.get('/api/dashboard', verifyToken, async (req, res) => {
         if (!user) return res.status(404).json({ error: "User not found" });
 
         const studentProfile = await StudentProfile.findOne({ user: req.user.id });
+
+        // Get most recently updated active enrollment for "My Learning" widget
+        let inProgressCourse = null;
+        if (studentProfile) {
+            const activeEnrollment = await Enrollment.findOne({
+                student: studentProfile._id
+            })
+                .sort({ updatedAt: -1 })
+                .populate('course');
+
+            if (activeEnrollment && activeEnrollment.course) {
+                inProgressCourse = {
+                    courseId: activeEnrollment.course._id,
+                    title: activeEnrollment.course.title,
+                    thumbnail: activeEnrollment.course.thumbnail || '',
+                    level: activeEnrollment.course.level || 'Beginner',
+                    progress: activeEnrollment.progress || 0,
+                    completedChapters: activeEnrollment.completedChapters || [],
+                    chaptersTotal: activeEnrollment.course.chapters?.length || 0,
+                    chapters: activeEnrollment.course.chapters || []
+                };
+            }
+        }
 
         // AI Interview sessions
         const sessions = await AIInterviewSession.find({ user: req.user.id });
@@ -198,7 +255,8 @@ app.get('/api/dashboard', verifyToken, async (req, res) => {
             skills: finalSkills,
             interviewsThisWeek,
             recentActivity,
-            leaderboard: leaderboard.filter(l => l !== null)
+            leaderboard: leaderboard.filter(l => l !== null),
+            inProgressCourse
         });
     } catch (error) {
         console.error('Dashboard error:', error);
@@ -234,12 +292,54 @@ app.get('/api/user', verifyToken, async (req, res) => {
     }
 });
 
+app.put('/api/user', verifyToken, async (req, res) => {
+    try {
+        const { name, course, bio, skills, resumeName, resume } = req.body;
+
+        let user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        if (name) user.name = name;
+        if (course) user.course = course;
+        await user.save();
+
+        let parsedSkills = [];
+        if (Array.isArray(skills)) {
+            parsedSkills = skills;
+        } else if (typeof skills === 'string') {
+            parsedSkills = skills.split(',').map(s => s.trim()).filter(Boolean);
+        }
+
+        const profileData = {
+            course: course || user.course,
+            bio: bio !== undefined ? bio : undefined,
+            skills: parsedSkills.length > 0 ? parsedSkills : undefined,
+            resumeName: resumeName !== undefined ? resumeName : undefined,
+            resume: resume !== undefined ? resume : undefined
+        };
+
+        // Remove undefined fields
+        Object.keys(profileData).forEach(key => profileData[key] === undefined && delete profileData[key]);
+
+        const studentProfile = await StudentProfile.findOneAndUpdate(
+            { user: req.user.id },
+            { $set: profileData },
+            { new: true, upsert: true }
+        );
+
+        res.json({ success: true, user, studentProfile });
+    } catch (err) {
+        console.error('Update profile error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // 4. Authentication Routes (Login, CurrentUser, Logout)
 app.get('/api/me', (req, res) => {
     const token = req.cookies.token;
     if (!token) return res.status(401).json({ error: 'Access denied. Please login.' });
     try {
-        const verified = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_123');
+        const verified = jwt.verify(token, process.env.JWT_SECRET || 'campus_recruit_jwt_secret_2026_secure_key');
         res.json({ id: verified.id, name: verified.name || "User", email: verified.email || "" });
     } catch (err) {
         res.status(401).json({ error: 'Invalid token' });
@@ -273,12 +373,15 @@ app.post('/api/login', async (req, res) => {
         res.status(200).json({ success: true, token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
     } catch (err) {
         console.error('Login error:', err);
-        res.status(500).json({ error: 'Server Error' });
+        res.status(500).json({ error: 'Server Error', message: err.message, stack: err.stack });
     }
 });
 
 app.get('/api/currentuser', verifyToken, async (req, res) => {
     try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ error: 'Not authorized' });
+        }
         const user = await User.findById(req.user.id).select('-password');
         if (!user) return res.status(404).json({ error: 'User not found' });
         res.status(200).json(user);
@@ -291,6 +394,46 @@ app.get('/api/currentuser', verifyToken, async (req, res) => {
 app.post('/api/logout', (req, res) => {
     res.clearCookie('token');
     res.json({ success: true });
+});
+
+// 4a. Student Registration
+app.post('/api/register', async (req, res) => {
+    try {
+        const { name, email, password, course } = req.body;
+        if (!name || !email || !password) {
+            return res.status(400).json({ error: 'Please provide name, email and password' });
+        }
+        const existing = await User.findOne({ email });
+        if (existing) return res.status(400).json({ error: 'Email already in use' });
+
+        const user = await User.create({
+            name,
+            email,
+            password,
+            role: 'student',
+            course: course || '',
+            isVerified: true
+        });
+
+        // Auto-create StudentProfile
+        await StudentProfile.create({
+            user: user._id,
+            course: course || ''
+        });
+
+        const token = user.getSignedJwtToken();
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+        });
+
+        res.status(201).json({ success: true, token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    } catch (err) {
+        console.error('Register error:', err);
+        res.status(500).json({ error: err.message || 'Server error' });
+    }
 });
 
 // 4b. Employee Registration (creates a pending account, awaiting admin approval)
@@ -386,7 +529,7 @@ const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
 const aiInterviewRoutes = require('./routes/aiInterviewRoutes');
-app.use('/api/ai-interview', aiInterviewRoutes);
+app.use('/api/ai-interview', verifyToken, aiInterviewRoutes);
 
 // New dynamic routes
 const adminRoutes = require('./routes/adminRoutes');
@@ -401,7 +544,47 @@ app.use('/api/jobs', optionalAuth, jobRoutes);
 const communityRoutes = require('./routes/communityRoutes');
 app.use('/api/community', optionalAuth, communityRoutes);
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// New dynamic route for notifications
+const notificationRoutes = require('./routes/notificationRoutes');
+app.use('/api/notifications', notificationRoutes);
+
+// Create HTTP server and attach Socket.io
+const http = require('http');
+const { Server } = require('socket.io');
+
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177'],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true
+    }
 });
+
+// Make socket.io available in routes
+app.set('socketio', io);
+
+io.on('connection', (socket) => {
+    socket.on('join_room', (data) => {
+        if (typeof data === 'string') {
+            socket.join(data);
+            console.log(`User ${data} joined their notification room via socket ${socket.id}`);
+        } else if (data && data.userId) {
+            socket.join(data.userId);
+            if (data.role) {
+                socket.join(`role:${data.role}`);
+            }
+            console.log(`User ${data.userId} and role ${data.role} joined rooms via socket ${socket.id}`);
+        }
+    });
+
+    socket.on('disconnect', () => {
+        // Automatically handled
+    });
+});
+
+// Server startup moved to startServer() at the top
+
+
+// Start Server after all middleware and routes are mounted
+startServer();

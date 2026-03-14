@@ -136,6 +136,11 @@ router.get('/pending', async (req, res) => {
     }
 });
 
+const Notification = require('../models/Notification'); // Add at the file top level via replacement context
+
+// ...
+// Actually setting the require at the top of the file would be better, but I'll inline require or just replace the whole route. Let me replace the route and require Notification inside the route to avoid importing issues.
+
 // PUT /api/admin/users/:id/approve — approve an employee
 router.put('/users/:id/approve', async (req, res) => {
     try {
@@ -145,6 +150,20 @@ router.put('/users/:id/approve', async (req, res) => {
             { new: true }
         ).select('-password');
         if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Automated notification
+        const NotificationModel = require('../models/Notification');
+        const notif = await NotificationModel.create({
+            recipientId: user._id,
+            title: 'Account Approved!',
+            message: 'Your employee account has been approved by an admin. You can now log in.',
+            type: 'account_approval'
+        });
+        const io = req.app.get('socketio');
+        if (io) {
+            io.to(user._id.toString()).emit('new_notification', notif);
+        }
+
         res.json({ message: `${user.name} approved successfully`, user });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -159,6 +178,27 @@ router.delete('/users/:id/reject', async (req, res) => {
         res.json({ message: `${user.name}'s registration was rejected and removed` });
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+});
+// GET /api/admin/students/:id/resume - fetch a student's resume
+router.get('/students/:id/resume', async (req, res) => {
+    try {
+        const studentId = req.params.id;
+        const StudentProfile = require('../models/StudentProfile');
+
+        const profile = await StudentProfile.findOne({ user: studentId }).select('resume resumeName -_id');
+
+        if (!profile || !profile.resume) {
+            return res.status(404).json({ message: 'Resume not found for this student' });
+        }
+
+        res.json({
+            resume: profile.resume,
+            resumeName: profile.resumeName
+        });
+    } catch (err) {
+        console.error('Fetch resume error:', err);
+        res.status(500).json({ message: 'Server error fetching resume' });
     }
 });
 

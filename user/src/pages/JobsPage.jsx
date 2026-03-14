@@ -75,7 +75,7 @@ const JobsPage = () => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:5000/api/jobs');
+        const res = await fetch('/api/jobs', { credentials: 'include' });
         if (res.ok) {
           setJobs(await res.json());
         }

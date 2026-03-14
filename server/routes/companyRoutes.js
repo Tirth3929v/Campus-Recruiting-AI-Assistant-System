@@ -87,5 +87,78 @@ router.get('/dashboard', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+// GET /api/company/students/:id/resume - fetch a student's resume
+router.get('/students/:id/resume', async (req, res) => {
+    try {
+        const studentId = req.params.id;
+        const StudentProfile = require('../models/StudentProfile');
+
+        const profile = await StudentProfile.findOne({ user: studentId }).select('resume resumeName -_id');
+
+        if (!profile || !profile.resume) {
+            return res.status(404).json({ message: 'Resume not found for this student' });
+        }
+
+        res.json({
+            resume: profile.resume,
+            resumeName: profile.resumeName
+        });
+    } catch (err) {
+        console.error('Fetch resume error:', err);
+        res.status(500).json({ message: 'Server error fetching resume' });
+    }
+});
+
+// GET /api/company/applicants - fetch all applicants for the company's jobs
+router.get('/applicants', async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ message: 'Not authenticated' });
+
+        const companyProfile = await CompanyProfile.findOne({ userId });
+        if (!companyProfile) return res.status(404).json({ message: 'Company profile not found' });
+
+        const companyJobs = await Job.find({ company: companyProfile._id });
+        const jobIds = companyJobs.map(j => j._id);
+
+        const applications = await Application.find({ job: { $in: jobIds } })
+            .populate('student', 'user skills course resume resumeName')
+            .populate('job', 'title')
+            .sort({ createdAt: -1 });
+
+        const User = require('../models/User');
+
+        const applicantsData = await Promise.all(applications.map(async (app) => {
+            let studentName = 'Unknown';
+            let studentEmail = 'N/A';
+            let studentId = app.student?.user;
+
+            if (studentId) {
+                const u = await User.findById(studentId).select('name email');
+                if (u) {
+                    studentName = u.name;
+                    studentEmail = u.email;
+                }
+            }
+
+            return {
+                _id: app._id,
+                studentId: studentId,
+                name: studentName,
+                email: studentEmail,
+                role: app.job?.title || 'N/A',
+                score: app.score || 0,
+                status: app.status?.toLowerCase() || 'pending',
+                skills: app.student?.skills || [],
+                applied: app.createdAt
+            };
+        }));
+
+        res.json(applicantsData);
+    } catch (err) {
+        console.error('Fetch applicants error:', err);
+        res.status(500).json({ message: 'Server error fetching applicants' });
+    }
+});
 
 module.exports = router;

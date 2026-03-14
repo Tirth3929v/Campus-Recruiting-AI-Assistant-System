@@ -15,6 +15,7 @@ import ManageUsers from './pages/ManageUsers';
 import ManageJobs from './pages/ManageJobs';
 import ManageCandidates from './pages/ManageCandidates';
 import PendingApprovals from './pages/PendingApprovals';
+import SendNotification from './pages/SendNotification';
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
                 <Route path="jobs" element={<ManageJobs />} />
                 <Route path="candidates" element={<ManageCandidates />} />
                 <Route path="pending" element={<PendingApprovals />} />
+                <Route path="notifications/send" element={<SendNotification />} />
               </Route>
             </Route>
 

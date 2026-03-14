@@ -34,7 +34,12 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+    } catch (error) {
+      console.error("Logout API failed", error);
+    }
     localStorage.removeItem('token');
     setUser(null);
   };

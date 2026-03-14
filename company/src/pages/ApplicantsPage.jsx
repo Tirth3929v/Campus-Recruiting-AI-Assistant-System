@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Users, Search, Filter, Eye, CheckCircle, XCircle, Clock, Star, Mail } from 'lucide-react';
+import { Users, Search, Filter, Eye, CheckCircle, XCircle, Clock, Star, Mail, FileText, X, Loader2 } from 'lucide-react';
+import axiosInstance from './axiosInstance';
 
 const Reveal = ({ children, delay = 0, className = "" }) => {
     const ref = useRef(null);
@@ -15,16 +16,6 @@ const Reveal = ({ children, delay = 0, className = "" }) => {
     );
 };
 
-const applicants = [
-    { id: 1, name: "Alice Johnson", email: "alice@example.com", role: "React Developer", score: 92, status: "shortlisted", skills: ["React", "TypeScript", "Node.js"], applied: "2 hours ago" },
-    { id: 2, name: "Bob Smith", email: "bob@example.com", role: "Backend Engineer", score: 85, status: "pending", skills: ["Node.js", "MongoDB", "Express"], applied: "5 hours ago" },
-    { id: 3, name: "Charlie Davis", email: "charlie@example.com", role: "UI/UX Designer", score: 78, status: "reviewed", skills: ["Figma", "CSS", "React"], applied: "1 day ago" },
-    { id: 4, name: "Diana Evans", email: "diana@example.com", role: "Full Stack Developer", score: 88, status: "shortlisted", skills: ["React", "Django", "PostgreSQL"], applied: "1 day ago" },
-    { id: 5, name: "Ethan Hunt", email: "ethan@example.com", role: "DevOps Engineer", score: 71, status: "rejected", skills: ["Docker", "AWS", "CI/CD"], applied: "2 days ago" },
-    { id: 6, name: "Fiona Green", email: "fiona@example.com", role: "Data Analyst", score: 95, status: "shortlisted", skills: ["Python", "SQL", "Tableau"], applied: "3 days ago" },
-    { id: 7, name: "George White", email: "george@example.com", role: "React Developer", score: 68, status: "pending", skills: ["React", "JavaScript", "HTML"], applied: "3 days ago" },
-];
-
 const statusConfig = {
     pending: { color: "bg-yellow-100 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/20", icon: Clock },
     reviewed: { color: "bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20", icon: Eye },
@@ -32,9 +23,88 @@ const statusConfig = {
     rejected: { color: "bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/20", icon: XCircle },
 };
 
+const ResumeModal = ({ resumeData, onClose }) => {
+    if (!resumeData) return null;
+    return (
+        <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        >
+            <motion.div
+                initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden relative"
+            >
+                <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                        <FileText size={20} className="text-amber-500" />
+                        {resumeData.name}
+                    </h3>
+                    <button onClick={onClose} className="p-2 text-gray-500 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors">
+                        <X size={20} />
+                    </button>
+                </div>
+                <div className="flex-1 bg-gray-100 dark:bg-black p-2 overflow-hidden">
+                    {resumeData.url ? (
+                        <iframe
+                            src={resumeData.url}
+                            title="Resume Viewer"
+                            className="w-full h-full rounded-xl border border-gray-200 dark:border-gray-800 shadow-inner bg-white"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                            <FileText size={48} className="mb-4 text-gray-300 dark:text-gray-600" />
+                            <p>Preview not available</p>
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+};
+
 const ApplicantsPage = () => {
+    const [applicants, setApplicants] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [viewingResume, setViewingResume] = useState(null);
+    const [resumeLoading, setResumeLoading] = useState(null);
+
+    useEffect(() => {
+        fetchApplicants();
+    }, []);
+
+    const fetchApplicants = async () => {
+        try {
+            const res = await axiosInstance.get('/company/applicants');
+            setApplicants(res.data);
+        } catch (error) {
+            console.error('Failed to fetch applicants:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleViewResume = async (applicant) => {
+        if (!applicant.studentId) {
+            alert('This applicant has no connected student profile.');
+            return;
+        }
+        setResumeLoading(applicant._id);
+        try {
+            const res = await axiosInstance.get(`/company/students/${applicant.studentId}/resume`);
+            if (res.data && res.data.resume) {
+                setViewingResume({ name: res.data.resumeName || `${applicant.name}'s Resume`, url: res.data.resume });
+            } else {
+                alert('No resume found for this student');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Failed to fetch resume');
+        } finally {
+            setResumeLoading(null);
+        }
+    };
 
     const filtered = applicants.filter(a => {
         const matchesSearch = a.name.toLowerCase().includes(searchTerm.toLowerCase()) || a.role.toLowerCase().includes(searchTerm.toLowerCase());
@@ -116,10 +186,15 @@ const ApplicantsPage = () => {
                                         </span>
 
                                         {/* Actions */}
-                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
-                                                className="p-2 hover:bg-amber-100 dark:hover:bg-amber-500/10 rounded-lg transition-colors" title="View Profile">
-                                                <Eye size={16} className="text-amber-600 dark:text-amber-400" />
+                                        <div className="flex gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <motion.button
+                                                whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
+                                                onClick={() => handleViewResume(applicant)}
+                                                disabled={resumeLoading === (applicant._id || applicant.id)}
+                                                className="p-2 hover:bg-amber-100 dark:hover:bg-amber-500/10 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
+                                                title="View Resume"
+                                            >
+                                                {resumeLoading === (applicant._id || applicant.id) ? <Loader2 size={16} className="animate-spin text-amber-600 dark:text-amber-400" /> : <FileText size={16} className="text-amber-600 dark:text-amber-400" />}
                                             </motion.button>
                                             <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
                                                 className="p-2 hover:bg-blue-100 dark:hover:bg-blue-500/10 rounded-lg transition-colors" title="Send Email">
@@ -146,6 +221,8 @@ const ApplicantsPage = () => {
                     </Reveal>
                 )}
             </div>
+
+            {viewingResume && <ResumeModal resumeData={viewingResume} onClose={() => setViewingResume(null)} />}
         </div>
     );
 };

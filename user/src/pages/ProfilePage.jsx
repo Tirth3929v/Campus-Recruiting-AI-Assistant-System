@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { User, Mail, FileText, Save, Upload, CheckCircle, Loader2, BookOpen, Briefcase, Sparkles, Award, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ProfileAvatar from '../components/ProfileAvatar';
+import axiosInstance from './axiosInstance';
 
 // ─── Scroll Reveal ────────────────────────────────────────────
 const Reveal = ({ children, delay = 0, direction = "up", className = "" }) => {
@@ -34,16 +36,17 @@ const ProfilePage = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/user', { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        setFormData({
-          name: data.name || '', email: data.email || '', course: data.course || '',
-          bio: data.bio || '', skills: data.skills || '', resumeName: data.resumeName || '', resume: data.resume || ''
-        });
-      }
-    } catch (error) { console.error("Failed to load profile", error); }
-    finally { setLoading(false); }
+      const res = await axiosInstance.get('/user');
+      const data = res.data;
+      setFormData({
+        name: data.name || '', email: data.email || '', course: data.course || '',
+        bio: data.bio || '', skills: data.skills || '', resumeName: data.resumeName || '', resume: data.resume || ''
+      });
+    } catch (error) {
+      console.error("Failed to load profile", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFileChange = (e) => {
@@ -63,22 +66,22 @@ const ProfilePage = () => {
     setSaving(true);
     setMessage(null);
     try {
-      const res = await fetch('http://localhost:5000/api/user', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData), credentials: 'include'
-      });
-      if (res.ok) {
+      const res = await axiosInstance.put('/user', formData);
+      if (res.status === 200) {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
         setTimeout(() => setMessage(null), 4000);
       } else {
         setMessage({ type: 'error', text: 'Failed to update profile.' });
       }
     } catch (error) {
+      console.error('Profile update error:', error);
       setMessage({ type: 'error', text: 'Server error occurred.' });
     } finally { setSaving(false); }
   };
 
-  const skillTags = formData.skills ? formData.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const skillTags = Array.isArray(formData.skills)
+    ? formData.skills
+    : (formData.skills ? String(formData.skills).split(',').map(s => s.trim()).filter(Boolean) : []);
 
   if (loading) {
     return (
@@ -117,12 +120,9 @@ const ProfilePage = () => {
         {/* ── Avatar Card ──────────────────────────── */}
         <Reveal delay={0.1}>
           <div className="glass-panel rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6">
-            <motion.div
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              className="h-24 w-24 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white text-4xl font-bold shadow-xl shadow-violet-500/30 flex-shrink-0"
-            >
-              {(formData.name?.[0] || 'U').toUpperCase()}
-            </motion.div>
+            <div className="flex-shrink-0">
+              <ProfileAvatar size="lg" />
+            </div>
             <div className="text-center sm:text-left">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{formData.name || 'Your Name'}</h2>
               <p className="text-gray-500 dark:text-gray-400">{formData.email}</p>
@@ -244,7 +244,7 @@ const ProfilePage = () => {
                 <p className="text-xs text-gray-400 mt-1">Max file size: 5MB</p>
               </motion.div>
 
-              {formData.resume && formData.resume.startsWith('data:application/pdf') && (
+              {formData.resume && (formData.resume.startsWith('data:application/pdf') || formData.resume.startsWith('http')) && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   className="mt-4">
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Preview</label>

@@ -16,10 +16,11 @@ import EmployeeDashboard from './pages/EmployeeDashboard';
 import CourseBuilder from './pages/CourseBuilder';
 import JobBoard from './pages/JobBoard';
 import MyProfile from './pages/MyProfile';
+import SendNotification from './pages/SendNotification';
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <ThemeProvider>
           <Routes>
@@ -39,6 +40,7 @@ const App = () => {
               <Route index element={<EmployeeDashboard />} />
               <Route path="courses" element={<CourseBuilder />} />
               <Route path="jobs" element={<JobBoard />} />
+              <Route path="notifications/send" element={<SendNotification />} />
               <Route path="profile" element={<MyProfile />} />
             </Route>
 

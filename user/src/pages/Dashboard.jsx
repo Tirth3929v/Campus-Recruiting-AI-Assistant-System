@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import StreakWidget from '../components/StreakWidget';
+import MyLearningWidget from '../components/MyLearningWidget';
 
 const iconMap = { Activity, Target, Trophy, Clock, Zap };
 const resourceIconMap = { BookOpen, Layers, Code, Briefcase };
@@ -345,7 +347,7 @@ const Dashboard = () => {
                     animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                     transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                 >
-                    <div className="relative overflow-hidden rounded-3xl glass-panel p-8 md:p-10">
+                    <div className="relative overflow-hidden rounded-3xl glass-panel p-8 md:p-10 flex flex-col lg:flex-row gap-8 items-center justify-between">
                         {/* Animated gradient background */}
                         <motion.div
                             animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
@@ -357,7 +359,7 @@ const Dashboard = () => {
                             <Rocket size={280} />
                         </div>
 
-                        <div className="relative z-10">
+                        <div className="relative z-10 flex-1 w-full">
                             <motion.h2
                                 initial={{ opacity: 0, x: -60, filter: "blur(8px)" }}
                                 animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
@@ -373,14 +375,6 @@ const Dashboard = () => {
                                 transition={{ delay: 0.6, duration: 0.8 }}
                                 className="flex flex-wrap items-center gap-3 mb-6"
                             >
-                                <motion.div
-                                    animate={{ scale: [1, 1.08, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 px-4 py-2 rounded-full text-orange-600 dark:text-orange-400 font-bold text-sm"
-                                >
-                                    <Flame size={16} className="text-orange-500" />
-                                    <span>{data?.user?.streak || 0} Day Streak</span>
-                                </motion.div>
                                 <p className="text-lg text-gray-600 dark:text-gray-300">
                                     You are <span className="text-emerald-600 dark:text-emerald-400 font-bold text-2xl">
                                         <AnimatedCounter value={data?.user?.readiness || 50} suffix="%" />
@@ -453,8 +447,17 @@ const Dashboard = () => {
                                 </motion.button>
                             </div>
                         </div>
+
+                        <div className="relative z-10 w-full lg:w-auto mt-6 lg:mt-0 lg:ml-8">
+                            <StreakWidget streak={data?.user?.streak || 0} />
+                        </div>
                     </div>
                 </motion.div>
+
+                {/* ── NEW: My Learning Widget ──────── */}
+                <Reveal direction="up" delay={0.1}>
+                    <MyLearningWidget data={data?.inProgressCourse} />
+                </Reveal>
 
                 {/* ── B. Stat Cards — Staggered Counters ──────── */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

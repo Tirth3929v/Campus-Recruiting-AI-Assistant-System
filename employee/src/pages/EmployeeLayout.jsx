@@ -1,8 +1,9 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, BookOpen, Briefcase, User, LogOut, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Briefcase, User, LogOut, ChevronRight, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from '../components/NotificationBell';
 
 const EmployeeLayout = () => {
     const location = useLocation();
@@ -12,6 +13,7 @@ const EmployeeLayout = () => {
         { path: '/employee', label: 'Dashboard', icon: LayoutDashboard, exact: true },
         { path: '/employee/jobs', label: 'Job Board', icon: Briefcase },
         { path: '/employee/courses', label: 'Courses', icon: BookOpen },
+        { path: '/employee/notifications/send', label: 'Send Notification', icon: Bell },
         { path: '/employee/profile', label: 'My Profile', icon: User },
     ];
 
@@ -64,8 +66,8 @@ const EmployeeLayout = () => {
                             <Link key={item.path} to={item.path}>
                                 <motion.div whileHover={{ x: 3 }} whileTap={{ scale: 0.97 }}
                                     className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer ${isActive
-                                            ? 'text-emerald-400 border border-emerald-500/20'
-                                            : 'text-white/35 hover:text-white/70 hover:bg-white/5'
+                                        ? 'text-emerald-400 border border-emerald-500/20'
+                                        : 'text-white/35 hover:text-white/70 hover:bg-white/5'
                                         }`}
                                     style={isActive ? { background: 'rgba(16,185,129,0.08)' } : {}}>
                                     {isActive && (
@@ -99,8 +101,9 @@ const EmployeeLayout = () => {
                         <ChevronRight size={14} />
                         <span className="text-white font-semibold">{currentPage?.label || 'Dashboard'}</span>
                     </div>
-                    <div className="text-xs text-white/25">
-                        {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    <div className="flex items-center gap-4 text-xs text-white/25">
+                        <NotificationBell basePath="/employee" />
+                        <div>{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
                     </div>
                 </header>
 

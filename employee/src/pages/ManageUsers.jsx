@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Trash2, Shield, ChevronDown, Search, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Users, Trash2, Shield, ChevronDown, Search, Loader2, AlertTriangle, CheckCircle, FileText, X } from 'lucide-react';
 import axiosInstance from './axiosInstance';
 
 const ROLES = ['student', 'company', 'admin'];
@@ -53,6 +53,45 @@ const ConfirmModal = ({ user, onConfirm, onCancel }) => (
   </motion.div>
 );
 
+const ResumeModal = ({ resumeData, onClose }) => {
+  if (!resumeData) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden relative"
+      >
+        <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50/50">
+          <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <FileText size={20} className="text-blue-500" />
+            {resumeData.name}
+          </h3>
+          <button onClick={onClose} className="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+        <div className="flex-1 bg-gray-100 p-2 overflow-hidden">
+          {resumeData.url ? (
+            <iframe
+              src={resumeData.url}
+              title="Resume Viewer"
+              className="w-full h-full rounded-xl border border-gray-200 shadow-inner bg-white"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+              <FileText size={48} className="mb-4 text-gray-300" />
+              <p>Preview not available</p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const containerVariants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.06 } },
@@ -69,6 +108,8 @@ const ManageUsers = () => {
   const [confirmUser, setConfirmUser] = useState(null);
   const [toast, setToast] = useState(null);
   const [roleLoading, setRoleLoading] = useState({});
+  const [viewingResume, setViewingResume] = useState(null);
+  const [resumeLoading, setResumeLoading] = useState(null);
 
   const showToast = (message, type = 'success') => setToast({ message, type });
 
@@ -114,6 +155,26 @@ const ManageUsers = () => {
     }
   };
 
+  const handleViewResume = async (student) => {
+    setResumeLoading(student._id);
+    try {
+      const res = await axiosInstance.get(`/admin/students/${student._id}/resume`);
+      if (res.data && res.data.resume) {
+        setViewingResume({
+          name: res.data.resumeName || `${student.name}'s Resume`,
+          url: res.data.resume
+        });
+      } else {
+        showToast('No resume found for this student', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast(error.response?.data?.message || 'Failed to fetch resume', 'error');
+    } finally {
+      setResumeLoading(null);
+    }
+  };
+
   const filtered = users.filter(u =>
     u.name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
@@ -124,6 +185,7 @@ const ManageUsers = () => {
       <AnimatePresence>
         {toast && <Toast key="toast" message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
         {confirmUser && <ConfirmModal key="modal" user={confirmUser} onConfirm={handleDelete} onCancel={() => setConfirmUser(null)} />}
+        {viewingResume && <ResumeModal key="resume" resumeData={viewingResume} onClose={() => setViewingResume(null)} />}
       </AnimatePresence>
 
       {/* Header */}
@@ -196,13 +258,26 @@ const ManageUsers = () => {
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                     </td>
                     <td className="px-5 py-4">
-                      <motion.button
-                        whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
-                        onClick={() => setConfirmUser(user)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                      >
-                        <Trash2 size={13} /> Delete
-                      </motion.button>
+                      <div className="flex items-center gap-2">
+                        {user.role === 'student' && (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                            onClick={() => handleViewResume(user)}
+                            disabled={resumeLoading === user._id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            {resumeLoading === user._id ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
+                            Resume
+                          </motion.button>
+                        )}
+                        <motion.button
+                          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
+                          onClick={() => setConfirmUser(user)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={13} /> Delete
+                        </motion.button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))}

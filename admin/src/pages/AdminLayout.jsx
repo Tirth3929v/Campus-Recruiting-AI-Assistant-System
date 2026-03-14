@@ -3,9 +3,10 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Users, Briefcase, Clock, LogOut,
-  ShieldCheck, Menu, X, ChevronRight
+  ShieldCheck, Menu, X, ChevronRight, Bell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from '../components/NotificationBell';
 
 const AdminLayout = () => {
   const location = useLocation();
@@ -22,6 +23,7 @@ const AdminLayout = () => {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/users', label: 'Manage Users', icon: Users },
     { path: '/jobs', label: 'Manage Jobs', icon: Briefcase },
+    { path: '/notifications/send', label: 'Send Notification', icon: Bell },
     { path: '/pending', label: 'Pending Approvals', icon: Clock, badge: pendingCount },
   ];
 
@@ -133,9 +135,12 @@ const AdminLayout = () => {
             <ChevronRight size={14} />
             <span className="text-white font-semibold">{currentPage?.label || 'Dashboard'}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-            <span className="text-xs text-white/30">System Online</span>
+          <div className="flex items-center gap-4 text-xs text-white/30">
+            <NotificationBell basePath="/admin" />
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              <span>System Online</span>
+            </div>
           </div>
         </header>
 

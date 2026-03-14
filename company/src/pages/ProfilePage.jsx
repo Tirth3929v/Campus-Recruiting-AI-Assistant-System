@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, FileText, Save, Upload, CheckCircle, Loader2, BookOpen, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from './axiosInstance';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -26,19 +27,17 @@ const ProfilePage = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/user', { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        setFormData({
-          name: data.name || '',
-          email: data.email || '',
-          course: data.course || '',
-          bio: data.bio || '',
-          skills: data.skills || '',
-          resumeName: data.resumeName || '',
-          resume: data.resume || ''
-        });
-      }
+      const res = await axiosInstance.get('/user');
+      const data = res.data;
+      setFormData({
+        name: data.name || '',
+        email: data.email || '',
+        course: data.course || '',
+        bio: data.bio || '',
+        skills: data.skills || '',
+        resumeName: data.resumeName || '',
+        resume: data.resume || ''
+      });
     } catch (error) {
       console.error("Failed to load profile", error);
     } finally {
@@ -72,14 +71,9 @@ const ProfilePage = () => {
     setMessage(null);
 
     try {
-      const res = await fetch('http://localhost:5000/api/user', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        credentials: 'include'
-      });
+      const res = await axiosInstance.put('/user', formData);
 
-      if (res.ok) {
+      if (res.status === 200 || res.status === 201) {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
         setTimeout(() => setMessage(null), 3000);
       } else {

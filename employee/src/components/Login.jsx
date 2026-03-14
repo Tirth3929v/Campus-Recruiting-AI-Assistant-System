@@ -12,7 +12,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   if (authLoading) return null;
-  if (user) return <Navigate to="/student/dashboard" replace />;
+  if (user) return <Navigate to="/employee/dashboard" replace />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,6 +72,9 @@ const Login = () => {
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
               <input 
                 type="email" 
+                id="employee-email"
+                name="email"
+                autoComplete="username"
                 required
                 className="w-full bg-gray-800/50 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
                 placeholder="Enter your email"
@@ -87,6 +90,9 @@ const Login = () => {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
               <input 
                 type="password" 
+                id="employee-password"
+                name="password"
+                autoComplete="current-password"
                 required
                 className="w-full bg-gray-800/50 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
                 placeholder="Enter your password"

@@ -15,6 +15,7 @@ import JobsPage from './pages/JobsPage';
 import CoursesPage from './pages/CoursesPage';
 import CourseViewer from './pages/CourseViewer';
 import HistoryPage from './pages/HistoryPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 const App = () => {
   return (
@@ -45,6 +46,7 @@ const App = () => {
                 <Route path="courses" element={<CoursesPage />} />
                 <Route path="courses/:id" element={<CourseViewer />} />
                 <Route path="history" element={<HistoryPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
               </Route>
 
               {/* ---------- Redirects ---------- */}

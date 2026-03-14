@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Briefcase, BookOpen, Bot, User, LogOut, Menu, Bell, Sun, Moon, ChevronRight, Sparkles, History } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from '../components/NotificationBell';
+import ProfileAvatar from '../components/ProfileAvatar';
 
 const UserLayout = () => {
   const location = useLocation();
@@ -173,19 +175,15 @@ const UserLayout = () => {
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </motion.button>
 
-            <button className="relative p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl text-gray-500 dark:text-gray-400 transition-colors">
-              <Bell size={18} />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-            </button>
+            <NotificationBell basePath="/student" />
 
             <div className="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-slate-700">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-semibold text-gray-800 dark:text-white">{user?.name || 'Student'}</p>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400">{user?.course || 'BCA (2026)'}</p>
               </div>
-              <motion.div whileHover={{ scale: 1.1 }}
-                className="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-white dark:ring-slate-800 cursor-pointer text-sm">
-                {(user?.name?.[0] || 'S').toUpperCase()}
+              <motion.div whileHover={{ scale: 1.1 }} className="cursor-pointer">
+                <ProfileAvatar size="sm" editable={false} />
               </motion.div>
             </div>
           </div>

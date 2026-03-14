@@ -110,6 +110,94 @@ router.post('/:id/apply', async (req, res) => {
     }
 });
 
+// POST /api/jobs — create a new job posting (company/admin only)
+router.post('/', async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ message: 'Not authenticated' });
+
+        const { title, company, location, salary, type, description, tags } = req.body;
+
+        // Find or create company profile for this user
+        let companyProfile = await CompanyProfile.findOne({ userId });
+        if (!companyProfile) {
+            companyProfile = await CompanyProfile.create({
+                userId,
+                companyName: company || 'My Company',
+                description: 'We are a great company',
+                location: location || 'Remote'
+            });
+        }
+
+        const newJob = await Job.create({
+            title,
+            company: companyProfile._id,
+            postedBy: userId,
+            location,
+            salary,
+            type,
+            description,
+            requirements: tags || []
+        });
+
+        res.status(201).json(newJob);
+    } catch (err) {
+        console.error('Create job error:', err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// PUT /api/jobs/:id — update an existing job posting
+router.put('/:id', async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ message: 'Not authenticated' });
+        
+        const job = await Job.findById(req.params.id);
+        if (!job) return res.status(404).json({ message: 'Job not found' });
+        
+        if (job.postedBy.toString() !== userId && req.user?.role !== 'admin') {
+            return res.status(403).json({ message: 'Unauthorized to edit this job' });
+        }
+
+        const { title, location, salary, type, description, tags } = req.body;
+        
+        job.title = title || job.title;
+        job.location = location || job.location;
+        job.salary = salary || job.salary;
+        job.type = type || job.type;
+        job.description = description || job.description;
+        if (tags) job.requirements = tags;
+        
+        await job.save();
+        res.json(job);
+    } catch (err) {
+        console.error('Update job error:', err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// DELETE /api/jobs/:id — delete a job posting
+router.delete('/:id', async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ message: 'Not authenticated' });
+
+        const job = await Job.findById(req.params.id);
+        if (!job) return res.status(404).json({ message: 'Job not found' });
+
+        if (job.postedBy.toString() !== userId && req.user?.role !== 'admin') {
+            return res.status(403).json({ message: 'Unauthorized to delete this job' });
+        }
+
+        await Job.findByIdAndDelete(req.params.id);
+        res.json({ success: true, message: 'Job deleted' });
+    } catch (err) {
+        console.error('Delete job error:', err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
 // Helper: time ago
 function _timeAgo(date) {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);

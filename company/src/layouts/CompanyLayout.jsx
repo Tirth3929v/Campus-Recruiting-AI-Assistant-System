@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Briefcase, Users, Building2, LogOut, Menu, Bell, Sun, Moon, ChevronRight, Flame } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from '../components/NotificationBell';
 
 const CompanyLayout = () => {
     const location = useLocation();
@@ -157,10 +158,9 @@ const CompanyLayout = () => {
                             className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl text-gray-500 dark:text-gray-400 transition-all">
                             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                         </motion.button>
-                        <button className="relative p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl text-gray-500 dark:text-gray-400 transition-colors">
-                            <Bell size={18} />
-                            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-                        </button>
+
+                        <NotificationBell basePath="/company" />
+
                         <div className="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-slate-700">
                             <div className="text-right hidden sm:block">
                                 <p className="text-sm font-semibold text-gray-800 dark:text-white">{user?.name || 'Company'}</p>

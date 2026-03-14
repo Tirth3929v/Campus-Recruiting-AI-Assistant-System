@@ -7,13 +7,14 @@ import CompanyDashboard from './pages/CompanyDashboard';
 import ManageJobs from './pages/ManageJobs';
 import ApplicantsPage from './pages/ApplicantsPage';
 import CompanyProfilePage from './pages/CompanyProfilePage';
+import NotificationsPage from './pages/NotificationsPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from './pages/ProtectedRoute';
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <ThemeProvider>
           <Routes>
@@ -35,6 +36,7 @@ const App = () => {
               <Route path="jobs" element={<ManageJobs />} />
               <Route path="applicants" element={<ApplicantsPage />} />
               <Route path="profile" element={<CompanyProfilePage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
             </Route>
 
             {/* Redirects */}

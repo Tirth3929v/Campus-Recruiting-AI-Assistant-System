@@ -97,13 +97,13 @@ const CoursesPage = () => {
             <div className="relative flex-grow">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
-                type="text" placeholder="Search for courses..."
+                id="courseSearch" name="courseSearch" type="text" placeholder="Search for courses..."
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3.5 glass-card rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
               />
             </div>
             <div className="min-w-[200px] relative">
-              <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}
+              <select id="courseLevelFilter" name="courseLevelFilter" value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}
                 className="w-full px-4 py-3.5 glass-card rounded-xl text-gray-900 dark:text-white cursor-pointer focus:ring-2 focus:ring-purple-500 outline-none appearance-none">
                 <option value="All">All Levels</option>
                 <option value="Beginner">Beginner</option>
@@ -189,7 +189,7 @@ const CoursesPage = () => {
                       {/* CTA */}
                       <motion.button
                         whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                        onClick={() => navigate(`/student/courses/${course.id || course._id}`)}
+                        onClick={() => navigate(`/student/courses/${course._id}`)}
                         className="w-full py-3.5 rounded-xl btn-gradient flex items-center justify-center gap-2 font-bold"
                       >
                         <Play size={18} className="fill-current" /> Continue Learning

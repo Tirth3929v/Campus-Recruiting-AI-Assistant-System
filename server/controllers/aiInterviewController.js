@@ -5,7 +5,7 @@ const AIInterviewSession = require('../models/AIInterviewSession');
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'your-gemini-api-key');
 
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 // Generate interview questions based on focus areas and difficulty
 exports.generateQuestions = async (req, res) => {

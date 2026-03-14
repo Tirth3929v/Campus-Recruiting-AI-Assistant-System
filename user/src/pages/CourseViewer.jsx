@@ -1,155 +1,276 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-    CheckCircle, ChevronRight, BookOpen, PlayCircle,
-    Trophy, Clock, BarChart2, Loader2, AlertTriangle, Video
+    CheckCircle, ChevronLeft, ChevronRight,
+    BookOpen, PlayCircle, Trophy, Clock,
+    BarChart2, Loader2, AlertTriangle, Video, Home
 } from 'lucide-react';
 import axiosInstance from './axiosInstance';
+import TryItYourself from '../components/TryItYourself';
 
-/* ─── Fallback mock (used when no courseId is available) ─────────── */
+/* ─── Fallback mock data ──────────────────────────────────────────── */
 const MOCK_COURSE = {
-    title: 'Advanced React Architecture',
-    instructor: 'Jane Doe',
-    level: 'Intermediate',
+    title: 'Python Tutorial',
+    instructor: 'CampusRecruit',
+    level: 'Beginner',
     chapters: [
         {
             chapterId: 'c1',
-            title: 'Welcome to React Architecture',
-            content: `In this chapter, we will explore **React Architecture** from the ground up.
+            title: 'Python HOME',
+            content: `Python is a popular programming language.
+Python can be used on a server to create web applications.
 
-Component structure is the backbone of every scalable React application. A well-designed component tree reduces re-renders, improves DX, and makes debugging far easier.
+## Learning by Examples
 
-### Key Topics
-- Atomic Design Principles
-- Thinking in Components
-- When to split vs. compose
-- Presentational vs. Container components`,
+With our "Try it Yourself" editor, you can edit Python code and view the result.
+
+\`\`\`python
+print("Hello, World!")
+\`\`\`
+
+Click on the "Try it Yourself" button to see how it works.
+
+## What is Python?
+
+Python is a popular programming language. It was created by Guido van Rossum, and released in 1991.
+
+It is used for:
+- Web development (server-side)
+- Software development
+- Mathematics and scripting
+- Data Science and Machine Learning
+
+## Python Syntax compared to other programming languages
+
+- Python was designed for readability, and has some similarities to the English language with influence from mathematics
+- Python uses new lines to complete a command, as opposed to other programming languages which often use semicolons or parentheses
+- Python relies on indentation, using whitespace, to define scope; such as the scope of loops, functions and classes`,
             videoUrl: '',
             order: 1,
+            exercise: {
+                question: 'What is a correct way to display "Hello World" in Python?',
+                options: [
+                    'echo("Hello World")',
+                    'print("Hello World")',
+                    'console.log("Hello World")',
+                    'printf("Hello World")'
+                ],
+                answer: 1
+            }
         },
         {
             chapterId: 'c2',
-            title: 'Custom Hooks & Reusability',
-            content: `Custom hooks are one of React's most powerful patterns. When you extract state logic from a component into a \`use...\` function, you make it reusable across your entire application without prop-drilling or context complexity.
+            title: 'Python Syntax',
+            content: `Python syntax can be executed by writing directly in the Command Line or by creating a python file on the server, using the .py file extension.
 
-### What you'll build
-- \`useFetch\` — generic data fetching hook
-- \`useLocalStorage\` — persistent state
-- \`useDebounce\` — delay-driven search inputs
+## Execute Python Syntax
 
-Custom hooks encourage **separation of concerns** and make unit testing your logic trivial.`,
-            videoUrl: 'https://www.youtube.com/embed/TNhaISOUy6Q',
-            order: 2,
-        },
-        {
-            chapterId: 'c3',
-            title: 'Performance Profiling & Optimization',
-            content: `Performance issues in React often stem from unnecessary re-renders. In this chapter, we discover how to profile components with **React DevTools Profiler** and eliminate waste.
+\`\`\`python
+print("Hello, World!")
+\`\`\`
 
-### Optimization signals to watch
-- Commit duration spikes
-- Wasted renders in pure components
-- Long lists without virtualization
+## Python Indentation
 
-### Tools we'll use
-- \`React.memo\` & \`useCallback\`
-- \`useMemo\` for expensive computations
-- \`react-window\` for list virtualization`,
+Indentation refers to the spaces at the beginning of a code line.
+
+Where in other programming languages the indentation in code is for readability only, the indentation in Python is very important.
+
+Python uses indentation to indicate a block of code.
+
+\`\`\`python
+if 5 > 2:
+    print("Five is greater than two!")
+\`\`\`
+
+## Python Variables
+
+In Python, variables are created when you assign a value to it:
+
+\`\`\`python
+x = 5
+y = "Hello, World!"
+print(x)
+print(y)
+\`\`\``,
             videoUrl: '',
-            order: 3,
-        },
+            order: 2,
+            exercise: {
+                question: 'Which is the correct file extension for Python files?',
+                options: ['.py', '.python', '.pt', '.pyt'],
+                answer: 0
+            }
+        }
     ],
 };
 
-/* ─── Markdown-lite renderer ─────────────────────────────────────── */
-const renderContent = (raw) => {
-    if (!raw) return null;
-    return raw.split('\n').map((line, i) => {
-        if (line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold text-white mt-6 mb-2">{line.slice(4)}</h3>;
-        if (line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold text-white mt-7 mb-3">{line.slice(3)}</h2>;
-        if (line.startsWith('# ')) return <h1 key={i} className="text-2xl font-extrabold text-white mt-8 mb-3">{line.slice(2)}</h1>;
-        if (line.startsWith('- ')) return (
-            <li key={i} className="flex items-start gap-2 text-gray-300 ml-4 mb-1">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
-                {formatInline(line.slice(2))}
-            </li>
-        );
-        if (line.trim() === '') return <div key={i} className="h-3" />;
-        return <p key={i} className="text-gray-300 leading-relaxed mb-1">{formatInline(line)}</p>;
-    });
-};
-
+/* ─── Markdown-lite renderer ──────────────────────────────────────── */
 const formatInline = (text) => {
     const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*)/g);
     return parts.map((part, i) => {
         if (part.startsWith('`') && part.endsWith('`'))
-            return <code key={i} className="bg-white/10 text-purple-300 px-1.5 py-0.5 rounded text-sm font-mono">{part.slice(1, -1)}</code>;
+            return <code key={i} className="bg-[#282c34] text-[#e06c75] px-1.5 py-0.5 rounded text-sm font-mono border border-gray-700">{part.slice(1, -1)}</code>;
         if (part.startsWith('**') && part.endsWith('**'))
-            return <strong key={i} className="text-white font-semibold">{part.slice(2, -2)}</strong>;
+            return <strong key={i} className="font-semibold text-gray-800">{part.slice(2, -2)}</strong>;
         return part;
     });
 };
 
-/* ─── YouTube URL → embed converter ────────────────────────────── */
+const renderContent = (raw) => {
+    if (!raw) return null;
+    const blocks = [];
+    const lines = raw.split('\n');
+    let inCode = false, codeLines = [], codeLang = '';
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.trim().startsWith('```')) {
+            if (inCode) {
+                blocks.push({ type: 'code', language: codeLang, content: codeLines.join('\n') });
+                inCode = false; codeLines = [];
+            } else {
+                inCode = true; codeLang = line.replace('```', '').trim();
+            }
+        } else if (inCode) {
+            codeLines.push(line);
+        } else {
+            blocks.push({ type: 'text', content: line });
+        }
+    }
+    return blocks.map((block, i) => {
+        if (block.type === 'code') {
+            if (block.language === 'python' || block.language === 'py') {
+                return <TryItYourself key={`code-${i}`} defaultCode={block.content} />;
+            }
+            return (
+                <div key={`code-${i}`} className="my-4 rounded-lg overflow-hidden border border-gray-300 shadow-sm">
+                    <div className="bg-[#282c34] px-4 py-2 text-xs text-gray-400 font-mono border-b border-gray-600">
+                        {block.language || 'code'}
+                    </div>
+                    <pre className="bg-[#1e2127] text-green-300 text-sm font-mono p-4 overflow-x-auto"><code>{block.content}</code></pre>
+                </div>
+            );
+        }
+        const line = block.content;
+        if (line.startsWith('### ')) return <h3 key={i} className="text-xl font-bold text-gray-800 mt-7 mb-3">{line.slice(4)}</h3>;
+        if (line.startsWith('## ')) return <h2 key={i} className="text-2xl font-bold text-gray-800 mt-8 mb-4 pb-2 border-b border-gray-200">{line.slice(3)}</h2>;
+        if (line.startsWith('# ')) return <h1 key={i} className="text-3xl font-bold text-gray-800 mt-8 mb-4">{line.slice(2)}</h1>;
+        if (line.startsWith('- ')) return (
+            <li key={i} className="flex items-start gap-2 text-gray-700 ml-4 mb-1 leading-relaxed">
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-green-600 shrink-0" />
+                {formatInline(line.slice(2))}
+            </li>
+        );
+        if (line.trim() === '') return <div key={i} className="h-2" />;
+        return <p key={i} className="text-gray-700 leading-relaxed mb-2">{formatInline(line)}</p>;
+    });
+};
+
+/* ─── YouTube embed converter ─────────────────────────────────────── */
 const toEmbedUrl = (url) => {
     if (!url) return '';
-    // Already an embed URL
     if (url.includes('/embed/')) return url;
     try {
         const u = new URL(url);
-        let videoId = '';
-
-        // youtu.be/VIDEO_ID
-        if (u.hostname === 'youtu.be') {
-            videoId = u.pathname.slice(1);
-        }
-        // youtube.com/shorts/VIDEO_ID
-        else if (u.pathname.startsWith('/shorts/')) {
-            videoId = u.pathname.split('/shorts/')[1];
-        }
-        // youtube.com/watch?v=VIDEO_ID  OR  m.youtube.com/watch?v=VIDEO_ID
-        else if (u.searchParams.has('v')) {
-            videoId = u.searchParams.get('v');
-        }
-
-        return videoId
-            ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`
-            : url; // fallback: return original if we can't parse it
-    } catch {
-        return url;
-    }
+        let id = '';
+        if (u.hostname === 'youtu.be') id = u.pathname.slice(1);
+        else if (u.pathname.startsWith('/shorts/')) id = u.pathname.split('/shorts/')[1];
+        else if (u.searchParams.has('v')) id = u.searchParams.get('v');
+        return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1` : url;
+    } catch { return url; }
 };
 
-/* ─── Main Component ─────────────────────────────────────────────── */
+/* ─── Exercise Quiz ───────────────────────────────────────────────── */
+const ExerciseQuiz = ({ exercise }) => {
+    const [selected, setSelected] = useState(null);
+    const [submitted, setSubmitted] = useState(false);
+    if (!exercise) return null;
+    const isCorrect = selected === exercise.answer;
+    return (
+        <div className="mt-8 mb-4 rounded-xl overflow-hidden border border-gray-300 shadow-md">
+            <div className="bg-gray-800 text-white px-5 py-3 flex items-center gap-2">
+                <Trophy size={16} className="text-yellow-400" />
+                <span className="font-bold text-sm">Exercise</span>
+                <span className="ml-auto text-yellow-400 text-xs">?</span>
+            </div>
+            <div className="bg-white px-5 py-4">
+                <p className="text-gray-800 font-semibold mb-4">{exercise.question}</p>
+                <div className="space-y-2">
+                    {exercise.options.map((opt, i) => (
+                        <button
+                            key={i}
+                            onClick={() => { if (!submitted) setSelected(i); }}
+                            className={`w-full text-left px-4 py-3 rounded-md border text-sm transition-all flex items-center gap-3 ${
+                                submitted
+                                    ? i === exercise.answer
+                                        ? 'bg-green-50 border-green-500 text-green-800'
+                                        : i === selected && !isCorrect
+                                            ? 'bg-red-50 border-red-400 text-red-700'
+                                            : 'bg-gray-50 border-gray-200 text-gray-600'
+                                    : selected === i
+                                        ? 'bg-blue-50 border-blue-400 text-blue-800'
+                                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                            }`}
+                        >
+                            <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                submitted && i === exercise.answer ? 'border-green-500 bg-green-500' :
+                                selected === i && !submitted ? 'border-blue-500' : 'border-gray-300'
+                            }`}>
+                                {submitted && i === exercise.answer && <span className="text-white text-xs">✓</span>}
+                            </span>
+                            {opt}
+                        </button>
+                    ))}
+                </div>
+                <div className="mt-4 flex items-center gap-3">
+                    <button
+                        onClick={() => { if (selected !== null) setSubmitted(true); }}
+                        disabled={submitted || selected === null}
+                        className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-bold transition-colors disabled:opacity-50"
+                    >
+                        Submit Answer »
+                    </button>
+                    {submitted && (
+                        <span className={`text-sm font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                            {isCorrect ? '✓ Correct!' : '✗ Incorrect. Try again!'}
+                        </span>
+                    )}
+                    {submitted && !isCorrect && (
+                        <button onClick={() => { setSelected(null); setSubmitted(false); }}
+                            className="text-xs text-blue-600 hover:underline">Reset</button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ─── Main Component ──────────────────────────────────────────────── */
 const CourseViewer = () => {
-    const { id: courseId } = useParams(); // Route uses :id → alias to courseId
+    const { id: courseId } = useParams();
+    const navigate = useNavigate();
 
     const [course, setCourse] = useState(null);
-    const [activeChapter, setActiveChapter] = useState(null);
+    const [activeIndex, setActiveIndex] = useState(0);
     const [completed, setCompleted] = useState(new Set());
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    /* — Fetch or fall back to mock — */
     const fetchCourse = useCallback(async () => {
-        setLoading(true);
-        setError(null);
+        setLoading(true); setError(null);
         try {
             if (courseId) {
                 const { data } = await axiosInstance.get(`/courses/${courseId}`);
                 const sorted = [...(data.chapters || [])].sort((a, b) => a.order - b.order);
-                const populated = { ...data, chapters: sorted };
-                setCourse(populated);
-                setActiveChapter(sorted[0] ?? null);
+                setCourse({ ...data, chapters: sorted });
+                try {
+                    const enrollRes = await axiosInstance.post(`/courses/${courseId}/enroll`);
+                    if (enrollRes.data?.enrollment?.completedChapters)
+                        setCompleted(new Set(enrollRes.data.enrollment.completedChapters));
+                } catch { /* silent */ }
             } else {
                 setCourse(MOCK_COURSE);
-                setActiveChapter(MOCK_COURSE.chapters[0]);
             }
-        } catch (err) {
-            console.error('Failed to fetch course:', err);
-            // Fall back to mock on error so UI is always useful
+        } catch {
             setCourse(MOCK_COURSE);
-            setActiveChapter(MOCK_COURSE.chapters[0]);
             setError('Could not load course from server — showing demo content.');
         } finally {
             setLoading(false);
@@ -158,175 +279,167 @@ const CourseViewer = () => {
 
     useEffect(() => { fetchCourse(); }, [fetchCourse]);
 
-    /* — Mark complete & advance — */
-    const handleMarkComplete = () => {
-        if (!activeChapter) return;
-        const nextCompleted = new Set(completed);
-        nextCompleted.add(activeChapter.chapterId);
-        setCompleted(nextCompleted);
-
-        const idx = (course.chapters || []).findIndex(c => c.chapterId === activeChapter.chapterId);
-        if (idx < course.chapters.length - 1) {
-            setActiveChapter(course.chapters[idx + 1]);
+    const handleMarkComplete = async () => {
+        const chapter = course?.chapters[activeIndex];
+        if (!chapter) return;
+        const next = new Set(completed);
+        next.add(chapter.chapterId);
+        setCompleted(next);
+        if (courseId) {
+            try { await axiosInstance.put(`/courses/${courseId}/progress`, { chapterId: chapter.chapterId }); } catch { /* silent */ }
         }
+        if (activeIndex < course.chapters.length - 1) setActiveIndex(prev => prev + 1);
     };
 
-    /* — Progress — */
-    const totalChapters = course?.chapters?.length ?? 0;
-    const completedCount = completed.size;
-    const progressPercent = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
-    const isCurrentComplete = activeChapter ? completed.has(activeChapter.chapterId) : false;
-    const isLastChapter = course?.chapters && activeChapter
-        ? activeChapter.chapterId === course.chapters[course.chapters.length - 1]?.chapterId
-        : false;
-
-    /* ─── Loading ─────────────────────────────────────────────────── */
     if (loading) return (
-        <div className="flex h-screen bg-[#0B0F19] items-center justify-center">
-            <div className="flex flex-col items-center gap-4 text-gray-400">
-                <Loader2 size={40} className="animate-spin text-purple-500" />
+        <div className="flex h-screen bg-gray-100 items-center justify-center">
+            <div className="flex flex-col items-center gap-4 text-gray-500">
+                <Loader2 size={40} className="animate-spin text-green-600" />
                 <p className="text-sm font-medium">Loading course…</p>
             </div>
         </div>
     );
 
-    /* ─── No chapter guard ────────────────────────────────────────── */
-    if (!course || !activeChapter) return (
-        <div className="flex h-screen bg-[#0B0F19] items-center justify-center text-gray-400">
-            <p>No chapters found for this course.</p>
+    if (!course) return (
+        <div className="flex h-screen bg-gray-100 items-center justify-center text-gray-500">
+            <p>No course found.</p>
         </div>
     );
 
-    /* ─── Render ─────────────────────────────────────────────────── */
+    const chapters = course.chapters || [];
+    const activeChapter = chapters[activeIndex];
+    const totalChapters = chapters.length;
+    const completedCount = completed.size;
+    const progressPercent = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+    const isCurrentComplete = activeChapter ? completed.has(activeChapter.chapterId) : false;
+    const hasPrev = activeIndex > 0;
+    const hasNext = activeIndex < totalChapters - 1;
+
     return (
-        <div className="flex h-screen bg-[#0B0F19] text-gray-200 font-sans overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
+        <div className="flex h-screen bg-white font-sans overflow-hidden" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
 
-            {/* ── LEFT SIDEBAR (w-1/4) ── */}
-            <aside className="w-1/4 min-w-[220px] max-w-[300px] h-full border-r border-white/10 flex flex-col shrink-0 bg-[#0D1220]/90 backdrop-blur-md">
-
-                {/* Course header */}
-                <div className="p-5 border-b border-white/10 shrink-0">
-                    <div className="flex items-center gap-1.5 mb-2">
-                        <span className="text-xs font-bold text-purple-400 uppercase tracking-widest">Course</span>
-                        {course.level && (
-                            <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">
-                                {course.level}
-                            </span>
-                        )}
-                    </div>
-                    <h2 className="text-base font-bold text-white leading-snug line-clamp-3 mb-1">{course.title}</h2>
-                    {course.instructor && <p className="text-xs text-gray-500">By {course.instructor}</p>}
+            {/* ══ LEFT SIDEBAR ══════════════════════════════════════════ */}
+            <aside className="w-[230px] shrink-0 h-full bg-gray-50 border-r border-gray-200 flex flex-col overflow-hidden">
+                {/* Course title */}
+                <div className="bg-[#282a35] text-white px-4 py-3 shrink-0">
+                    <h1 className="font-bold text-sm leading-snug">{course.title}</h1>
+                    {course.instructor && (
+                        <p className="text-xs text-gray-400 mt-0.5">By {course.instructor}</p>
+                    )}
                 </div>
 
-                {/* Progress bar */}
-                <div className="px-5 py-3 border-b border-white/10 shrink-0">
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-                        <span className="flex items-center gap-1"><BarChart2 size={11} /> Progress</span>
-                        <span className="font-bold text-purple-400">{progressPercent}%</span>
+                {/* Progress */}
+                <div className="px-3 py-2 bg-white border-b border-gray-200 shrink-0">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Progress</span>
+                        <span className="font-bold text-green-600">{progressPercent}%</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                        <div
-                            className="h-full rounded-full bg-gradient-to-r from-purple-600 to-blue-500 transition-all duration-500"
-                            style={{ width: `${progressPercent}%` }}
-                        />
+                    <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                        <div className="h-full rounded-full bg-green-500 transition-all duration-500" style={{ width: `${progressPercent}%` }} />
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">{completedCount} / {totalChapters} chapters</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{completedCount}/{totalChapters} chapters</p>
                 </div>
 
                 {/* Chapter list */}
-                <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#2d3748 transparent' }}>
-                    <p className="text-xs font-bold text-gray-600 uppercase tracking-widest px-2 mb-3 flex items-center gap-1.5">
-                        <BookOpen size={12} /> Chapters
-                    </p>
-
-                    {course.chapters.map((chapter, index) => {
-                        const isActive = activeChapter.chapterId === chapter.chapterId;
-                        const isDone = completed.has(chapter.chapterId);
+                <div className="flex-1 overflow-y-auto">
+                    {chapters.map((ch, idx) => {
+                        const isActive = idx === activeIndex;
+                        const isDone = completed.has(ch.chapterId);
                         return (
                             <button
-                                key={chapter.chapterId}
-                                onClick={() => setActiveChapter(chapter)}
-                                className={`w-full text-left px-3 py-3 rounded-xl flex items-start gap-3 transition-all duration-200 group ${isActive
-                                    ? 'bg-gradient-to-r from-purple-600/25 to-blue-500/15 border border-purple-500/30 shadow-[inset_0_1px_0_rgba(168,85,247,0.15)]'
-                                    : 'hover:bg-white/5 border border-transparent'
-                                    }`}
+                                key={ch.chapterId}
+                                onClick={() => setActiveIndex(idx)}
+                                className={`w-full text-left px-4 py-2 text-sm flex items-start gap-2 border-b border-gray-100 transition-colors ${
+                                    isActive
+                                        ? 'bg-[#04aa6d] text-white font-semibold'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
-                                {/* Icon */}
-                                <div className="shrink-0 mt-0.5">
-                                    {isDone ? (
-                                        <CheckCircle size={16} className="text-emerald-400" />
-                                    ) : isActive ? (
-                                        <PlayCircle size={16} className="text-purple-400" />
-                                    ) : (
-                                        <div className="w-4 h-4 rounded-full border-2 border-gray-600 group-hover:border-gray-400 transition-colors" />
-                                    )}
-                                </div>
-
-                                {/* Label */}
-                                <span className={`flex-1 text-xs font-medium leading-snug ${isActive ? 'text-purple-100' : isDone ? 'text-gray-400' : 'text-gray-400 group-hover:text-gray-200'
-                                    }`}>
-                                    <span className={`block text-[10px] mb-0.5 ${isActive ? 'text-purple-400' : 'text-gray-600'}`}>
-                                        Chapter {index + 1}
-                                    </span>
-                                    {chapter.title}
+                                <span className="shrink-0 mt-0.5">
+                                    {isDone
+                                        ? <CheckCircle size={13} className={isActive ? 'text-white' : 'text-green-500'} />
+                                        : isActive
+                                            ? <PlayCircle size={13} className="text-white" />
+                                            : <BookOpen size={13} className="text-gray-400" />
+                                    }
                                 </span>
+                                <span className="leading-snug">{ch.title}</span>
                             </button>
                         );
                     })}
                 </div>
 
-                {/* Stats strip */}
-                <div className="border-t border-white/10 p-4 grid grid-cols-2 gap-2 shrink-0">
-                    <div className="bg-white/5 rounded-xl p-2.5 text-center">
-                        <Clock size={14} className="text-gray-500 mx-auto mb-1" />
-                        <p className="text-xs font-bold text-white">{course.duration || 'N/A'}</p>
-                        <p className="text-[10px] text-gray-600">Duration</p>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-2.5 text-center">
-                        <Trophy size={14} className="text-gray-500 mx-auto mb-1" />
-                        <p className="text-xs font-bold text-white">{completedCount}/{totalChapters}</p>
-                        <p className="text-[10px] text-gray-600">Completed</p>
-                    </div>
+                {/* Bottom stats */}
+                <div className="shrink-0 border-t border-gray-200 px-3 py-2 bg-white flex items-center justify-between text-xs text-gray-500">
+                    <span className="flex items-center gap-1"><Clock size={11} /></span>
+                    <span className="flex items-center gap-1"><Trophy size={11} className="text-yellow-500" /> {completedCount}/{totalChapters}</span>
                 </div>
             </aside>
 
-            {/* ── MAIN CONTENT (w-3/4) ── */}
-            <main className="flex-1 h-full flex flex-col bg-gradient-to-b from-[#0B0F19] to-[#060810] relative overflow-hidden">
+            {/* ══ MAIN CONTENT AREA ═════════════════════════════════════ */}
+            <main className="flex-1 h-full flex flex-col overflow-hidden bg-white">
 
-                {/* Error banner */}
+                {/* Top Nav bar */}
+                <div className="shrink-0 bg-gray-100 border-b border-gray-300 px-4 py-2 flex items-center justify-between">
+                    <button
+                        onClick={() => navigate('/student/courses')}
+                        className="flex items-center gap-1.5 px-4 py-1.5 bg-[#282a35] text-white text-sm rounded hover:bg-gray-700 transition-colors"
+                    >
+                        <Home size={14} /> Home
+                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setActiveIndex(prev => Math.max(0, prev - 1))}
+                            disabled={!hasPrev}
+                            className="flex items-center gap-1 px-4 py-1.5 bg-[#282a35] text-white text-sm rounded hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                            <ChevronLeft size={14} /> Previous
+                        </button>
+                        <span className="text-xs text-gray-500 px-2">
+                            {activeIndex + 1} / {totalChapters}
+                        </span>
+                        <button
+                            onClick={() => hasNext ? setActiveIndex(prev => prev + 1) : handleMarkComplete()}
+                            className="flex items-center gap-1 px-4 py-1.5 bg-[#04aa6d] text-white text-sm rounded hover:bg-green-600 transition-colors"
+                        >
+                            Next <ChevronRight size={14} />
+                        </button>
+                    </div>
+                </div>
+
                 {error && (
-                    <div className="shrink-0 flex items-center gap-2 bg-amber-500/10 border-b border-amber-500/20 text-amber-400 text-xs px-6 py-2">
+                    <div className="shrink-0 flex items-center gap-2 bg-amber-50 border-b border-amber-200 text-amber-700 text-xs px-5 py-2">
                         <AlertTriangle size={13} /> {error}
                     </div>
                 )}
 
-                {/* Scrollable content */}
-                <div className="flex-1 overflow-y-auto px-10 lg:px-16 pt-12 pb-36" style={{ scrollbarWidth: 'thin', scrollbarColor: '#1e2535 transparent' }}>
-                    <div className="max-w-3xl mx-auto w-full">
+                {/* Progress bar (thin W3Schools style green bar) */}
+                <div className="shrink-0 h-1 bg-gray-200">
+                    <div className="h-full bg-[#04aa6d] transition-all duration-500" style={{ width: `${((activeIndex + 1) / totalChapters) * 100}%` }} />
+                </div>
 
-                        {/* Chapter badge */}
-                        <div className="flex items-center gap-2 mb-5">
-                            <span className="text-xs font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30 px-3 py-1 rounded-full">
-                                Chapter {(course.chapters || []).findIndex(c => c.chapterId === activeChapter.chapterId) + 1} of {totalChapters}
-                            </span>
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto">
+                    <div className="max-w-4xl mx-auto px-8 py-8">
+
+                        {/* Green intro banner */}
+                        <div className="bg-[#D4EDDA] border border-[#C3E6CB] rounded-sm px-6 py-5 mb-8">
+                            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                                {activeChapter?.title}
+                            </h1>
                             {isCurrentComplete && (
-                                <span className="text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1">
-                                    <CheckCircle size={11} /> Completed
-                                </span>
+                                <div className="flex items-center gap-1.5 text-green-700 text-sm mt-2">
+                                    <CheckCircle size={14} /> Chapter completed
+                                </div>
                             )}
                         </div>
 
-                        {/* Chapter title */}
-                        <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-8 tracking-tight leading-tight">
-                            {activeChapter.title}
-                        </h1>
-
-                        {/* Video embed (if provided) */}
-                        {activeChapter.videoUrl && (
-                            <div className="mb-8 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/50">
-                                <div className="bg-black/40 px-4 py-2.5 border-b border-white/10 flex items-center gap-2">
-                                    <Video size={14} className="text-purple-400" />
-                                    <span className="text-xs font-semibold text-gray-400">Video Resource</span>
+                        {/* Video embed */}
+                        {activeChapter?.videoUrl && (
+                            <div className="mb-8 rounded-lg overflow-hidden border border-gray-200 shadow">
+                                <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
+                                    <Video size={14} className="text-green-600" />
+                                    <span className="text-xs font-semibold text-gray-600">Video Resource</span>
                                 </div>
                                 <iframe
                                     src={toEmbedUrl(activeChapter.videoUrl)}
@@ -338,59 +451,64 @@ const CourseViewer = () => {
                             </div>
                         )}
 
-                        {/* Chapter content */}
-                        <div className="prose-custom">
-                            {renderContent(activeChapter.content)}
+                        {/* Chapter text content */}
+                        <div className="text-gray-700 leading-relaxed">
+                            {renderContent(activeChapter?.content)}
                         </div>
 
-                        {/* All done banner */}
+                        {/* Exercise section */}
+                        {activeChapter?.exercise && (
+                            <ExerciseQuiz exercise={activeChapter.exercise} key={activeChapter.chapterId} />
+                        )}
+
+                        {/* Tip: sign in to track progress (W3Schools style) */}
+                        {!isCurrentComplete && (
+                            <div className="mt-6 flex items-center gap-2 text-xs text-gray-500 border border-gray-200 rounded px-4 py-2 bg-gray-50">
+                                <span className="text-green-600 font-bold">Tip:</span>
+                                Mark this chapter as complete to track your progress.
+                            </div>
+                        )}
+
+                        {/* Completion banner */}
                         {progressPercent === 100 && (
-                            <div className="mt-12 p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 flex items-center gap-4">
-                                <Trophy size={32} className="text-emerald-400 shrink-0" />
+                            <div className="mt-8 p-6 rounded-lg bg-green-50 border border-green-300 flex items-center gap-4">
+                                <Trophy size={32} className="text-green-600 shrink-0" />
                                 <div>
-                                    <p className="font-bold text-emerald-300 text-lg">Course Complete! 🎉</p>
-                                    <p className="text-sm text-gray-400">You've finished all {totalChapters} chapters of <strong className="text-white">{course.title}</strong>.</p>
+                                    <p className="font-bold text-green-700 text-lg">Course Complete! 🎉</p>
+                                    <p className="text-sm text-gray-600">You've finished all {totalChapters} chapters of <strong>{course.title}</strong>.</p>
                                 </div>
                             </div>
                         )}
 
-                    </div>
-                </div>
-
-                {/* ── FLOATING BOTTOM ACTION ── */}
-                <div className="absolute bottom-0 left-0 right-0 z-10">
-                    {/* Gradient fade */}
-                    <div className="h-16 bg-gradient-to-t from-[#060810] to-transparent pointer-events-none" />
-
-                    <div className="bg-[#060810]/95 backdrop-blur-sm border-t border-white/5 px-10 py-5 flex items-center justify-center gap-4">
-                        {isCurrentComplete && !isLastChapter ? (
+                        {/* Bottom Prev/Next */}
+                        <div className="flex items-center justify-between mt-10 pt-6 border-t border-gray-200">
                             <button
-                                onClick={() => {
-                                    const idx = course.chapters.findIndex(c => c.chapterId === activeChapter.chapterId);
-                                    if (idx < course.chapters.length - 1) setActiveChapter(course.chapters[idx + 1]);
-                                }}
-                                className="px-10 py-3.5 rounded-2xl flex items-center gap-3 font-bold text-base bg-white/10 hover:bg-white/15 border border-white/10 text-white transition-all hover:-translate-y-0.5"
+                                onClick={() => setActiveIndex(prev => Math.max(0, prev - 1))}
+                                disabled={!hasPrev}
+                                className="flex items-center gap-2 px-6 py-2.5 bg-[#282a35] text-white rounded font-semibold text-sm hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             >
-                                <ChevronRight size={20} /> Next Chapter
+                                <ChevronLeft size={16} /> Previous
                             </button>
-                        ) : (
+
                             <button
                                 onClick={handleMarkComplete}
-                                disabled={isCurrentComplete}
-                                className={`px-10 py-3.5 rounded-2xl flex items-center gap-3 font-bold text-base transition-all shadow-lg ${isCurrentComplete
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white hover:-translate-y-1 hover:shadow-purple-500/30 border border-white/10 shadow-purple-500/20'
-                                    }`}
+                                disabled={isCurrentComplete && !hasNext}
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded font-semibold text-sm transition-colors ${
+                                    isCurrentComplete
+                                        ? 'bg-gray-200 text-gray-500 cursor-default'
+                                        : 'bg-[#04aa6d] hover:bg-green-600 text-white'
+                                }`}
                             >
                                 {isCurrentComplete
-                                    ? <><CheckCircle size={20} /> Chapter Completed</>
-                                    : <><ChevronRight size={20} /> Mark as Complete &amp; Next Chapter</>
+                                    ? <><CheckCircle size={16} /> Completed</>
+                                    : <>{hasNext ? 'Mark Complete & Next' : 'Finish Course'} <ChevronRight size={16} /></>
                                 }
                             </button>
-                        )}
+                        </div>
+
+                        <div className="h-10" />
                     </div>
                 </div>
-
             </main>
         </div>
     );

@@ -29,7 +29,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+    } catch (error) {
+      console.error("Logout API failed", error);
+    }
     localStorage.removeItem('token');
     setUser(null);
     window.location.href = '/login';

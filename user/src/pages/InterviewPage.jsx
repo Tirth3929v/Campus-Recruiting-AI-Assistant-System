@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Video, VideoOff, Send, StopCircle, AlertCircle, CheckCircle, ArrowRight, Loader2, Maximize, Settings } from 'lucide-react';
 import ScreenRecorder from '../components/ScreenRecorder';
+import axiosInstance from './axiosInstance';
 
 const InterviewPage = () => {
     const location = useLocation();
@@ -83,16 +84,14 @@ const InterviewPage = () => {
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/ai-interview/generate-questions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ focusAreas: [subject], difficulty: 'Medium', jobId: interviewId }),
-                    credentials: 'include'
+                const res = await axiosInstance.post('/ai-interview/generate-questions', {
+                    focusAreas: [subject],
+                    difficulty: 'Medium',
+                    jobId: interviewId
                 });
-                const data = await res.json();
-                if (data.success) {
-                    setAiSessionId(data.sessionId);
-                    setQuestions(data.questions);
+                if (res.data.success) {
+                    setAiSessionId(res.data.sessionId);
+                    setQuestions(res.data.questions);
                 }
             } catch (err) {
                 console.error("Failed to fetch AI questions", err);
@@ -108,21 +107,19 @@ const InterviewPage = () => {
         setLoading(true);
 
         try {
-            const req = await fetch('http://localhost:5000/api/ai-interview/evaluate-answer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sessionId: aiSessionId, questionIndex: currentQuestionIndex, userAnswer: answer }),
-                credentials: 'include'
+            const res = await axiosInstance.post('/ai-interview/evaluate-answer', {
+                sessionId: aiSessionId,
+                questionIndex: currentQuestionIndex,
+                userAnswer: answer
             });
 
-            const data = await req.json();
-            if (data.success) {
+            if (res.data.success) {
                 setFeedback({
-                    score: data.evaluation.score,
-                    feedback: data.evaluation.feedback,
-                    improvement: data.evaluation.improvements?.[0] || 'Keep practicing.'
+                    score: res.data.evaluation.score,
+                    feedback: res.data.evaluation.feedback,
+                    improvement: res.data.evaluation.improvements?.[0] || 'Keep practicing.'
                 });
-                setSessionScore(data.overallScore);
+                setSessionScore(res.data.overallScore);
             }
         } catch (error) {
             console.error(error);
@@ -145,11 +142,8 @@ const InterviewPage = () => {
         if (!aiSessionId) return navigate('/student/history');
 
         try {
-            await fetch(`http://localhost:5000/api/ai-interview/submit-session`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sessionId: aiSessionId }),
-                credentials: 'include'
+            await axiosInstance.post(`/ai-interview/submit-session`, {
+                sessionId: aiSessionId
             });
         } catch (error) {
             console.error("Failed to submit session", error);
