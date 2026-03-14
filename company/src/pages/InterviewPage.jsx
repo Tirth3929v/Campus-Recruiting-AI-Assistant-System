@@ -31,7 +31,7 @@ const InterviewPage = () => {
         setLoading(true);
 
         try {
-            const res = await fetch('http://localhost:5000/api/interview/feedback', {
+            const res = await fetch('/api/interview/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ question: currentQuestion, answer }),
@@ -71,7 +71,7 @@ const InterviewPage = () => {
         else if (finalScore >= 70) status = 'Good';
 
         try {
-            await fetch(`http://localhost:5000/api/interviews/${interviewId}`, {
+            await fetch(`/api/interviews/${interviewId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ score: finalScore, status }),

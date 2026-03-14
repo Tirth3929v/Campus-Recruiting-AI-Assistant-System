@@ -54,7 +54,7 @@ const HistoryPage = () => {
 
   useEffect(() => {
     if (user?.id) {
-      fetch(`http://localhost:5000/api/interviews/${user.id}`)
+      fetch(`/api/interviews/${user.id}`)
         .then(res => res.json())
         .then(data => setApiSessions(data))
         .catch(err => console.error("Failed to fetch history:", err));
@@ -64,7 +64,7 @@ const HistoryPage = () => {
   const handleDelete = async (id, type) => {
     if (type === 'api') {
       try {
-        await fetch(`http://localhost:5000/api/interviews/${id}`, { method: 'DELETE' });
+        await fetch(`/api/interviews/${id}`, { method: 'DELETE' });
         setApiSessions(prev => prev.filter(s => s._id !== id));
       } catch (e) { console.error(e); }
     } else {

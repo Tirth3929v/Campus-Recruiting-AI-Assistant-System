@@ -76,7 +76,7 @@ const CompanyDashboard = () => {
         const fetchDashboard = async () => {
             try {
                 setLoading(true);
-                const res = await fetch('http://localhost:5000/api/company/dashboard', { credentials: 'include' });
+                const res = await fetch('/api/company/dashboard', { credentials: 'include' });
                 if (res.ok) {
                     setDashboardData(await res.json());
                 }

@@ -26,7 +26,7 @@ const ProfilePage = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/user', { credentials: 'include' });
+      const res = await fetch('/api/user', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -72,7 +72,7 @@ const ProfilePage = () => {
     setMessage(null);
 
     try {
-      const res = await fetch('http://localhost:5000/api/user', {
+      const res = await fetch('/api/user', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

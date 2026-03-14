@@ -104,7 +104,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/dashboard', { credentials: 'include' });
+        const res = await fetch('/api/dashboard', { credentials: 'include' });
         if (res.ok) {
           const result = await res.json();
           setData(result);
@@ -122,7 +122,7 @@ const Dashboard = () => {
     if (showChat) {
         const fetchMessages = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/messages', { credentials: 'include' });
+                const res = await fetch('/api/messages', { credentials: 'include' });
                 if (res.ok) {
                     const data = await res.json();
                     setChatMessages(data);
@@ -152,7 +152,7 @@ const Dashboard = () => {
 
   const handleSaveGoal = async () => {
     try {
-      await fetch('http://localhost:5000/api/user/goal', {
+      await fetch('/api/user/goal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ weeklyGoal }),
@@ -166,7 +166,7 @@ const Dashboard = () => {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     try {
-      await fetch('http://localhost:5000/api/contact', {
+      await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contactForm),
@@ -180,7 +180,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:5000/api/logout', { method: 'POST', credentials: 'include' });
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
       if (logout) logout();
       navigate('/login');
     } catch (e) {
@@ -192,7 +192,7 @@ const Dashboard = () => {
     e.preventDefault();
     if (!chatInput.trim()) return;
     try {
-        await fetch('http://localhost:5000/api/messages', {
+        await fetch('/api/messages', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: chatInput }),
@@ -200,7 +200,7 @@ const Dashboard = () => {
         });
         setChatInput('');
         // Immediate fetch to show user message
-        const res = await fetch('http://localhost:5000/api/messages', { credentials: 'include' });
+        const res = await fetch('/api/messages', { credentials: 'include' });
         if (res.ok) setChatMessages(await res.json());
     } catch (e) { console.error(e); }
   };

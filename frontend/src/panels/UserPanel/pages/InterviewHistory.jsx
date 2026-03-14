@@ -24,7 +24,7 @@ const InterviewHistory = () => {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/interviews', { credentials: 'include' });
+                const res = await fetch('/api/interviews', { credentials: 'include' });
                 if (res.ok) {
                     const data = await res.json();
                     setInterviews(data);

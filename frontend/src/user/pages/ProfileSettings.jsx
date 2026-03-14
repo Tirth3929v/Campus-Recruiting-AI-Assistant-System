@@ -33,7 +33,7 @@ const ProfileSettings = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const res = await fetch('http://localhost:5000/api/user', { credentials: 'include' });
+      const res = await fetch('/api/user', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setFormData({ 
@@ -84,7 +84,7 @@ const ProfileSettings = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch('http://localhost:5000/api/user', {
+    const res = await fetch('/api/user', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
@@ -103,7 +103,7 @@ const ProfileSettings = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/user/password', {
+      const res = await fetch('/api/user/password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -121,7 +121,7 @@ const ProfileSettings = () => {
   const handleDeleteAccount = async () => {
     if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
       try {
-        const res = await fetch('http://localhost:5000/api/user', { method: 'DELETE', credentials: 'include' });
+        const res = await fetch('/api/user', { method: 'DELETE', credentials: 'include' });
         if (res.ok) {
           alert("Account deleted successfully.");
           window.location.href = '/login';

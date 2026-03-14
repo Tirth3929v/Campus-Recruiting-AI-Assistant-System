@@ -60,7 +60,7 @@ const ScreenRecorder = ({ jobId, onUploadSuccess }) => {
     try {
       setUploading(true);
       // Send to your Express Backend
-      const response = await axios.post('http://localhost:5000/api/interviews/upload', formData, {
+      const response = await axios.post('/api/interviews/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setUploading(false);

@@ -18,7 +18,7 @@ const Community = () => {
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/posts', { credentials: 'include' });
+      const res = await fetch('/api/posts', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setPosts(data);
@@ -33,7 +33,7 @@ const Community = () => {
     if (!newPost.trim()) return;
 
     try {
-      const res = await fetch('http://localhost:5000/api/posts', {
+      const res = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newPost }),
@@ -52,7 +52,7 @@ const Community = () => {
 
   const handleLike = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/posts/${id}/like`, {
+      await fetch(`/api/posts/${id}/like`, {
         method: 'POST',
         credentials: 'include'
       });
@@ -69,7 +69,7 @@ const Community = () => {
       setExpandedPostId(postId);
       if (!comments[postId]) {
         try {
-          const res = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, { credentials: 'include' });
+          const res = await fetch(`/api/posts/${postId}/comments`, { credentials: 'include' });
           if (res.ok) {
             const data = await res.json();
             setComments(prev => ({ ...prev, [postId]: data }));
@@ -86,7 +86,7 @@ const Community = () => {
     if (!newComment.trim()) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, {
+      const res = await fetch(`/api/posts/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newComment }),

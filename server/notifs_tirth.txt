@@ -1,0 +1,50 @@
+[
+  {
+    "_id": "69b05f6fa3fe83fa56763c73",
+    "recipientId": "69a98781db610ad2a01cd84f",
+    "title": "bxbfbfbf",
+    "message": "bfbbdfbfdg ghsg srgsg s",
+    "type": "manual",
+    "isRead": false,
+    "sentBy": "69b05e61a3fe83fa56763b3e",
+    "__v": 0,
+    "createdAt": "2026-03-10T18:14:07.269Z",
+    "updatedAt": "2026-03-10T18:14:07.269Z"
+  },
+  {
+    "_id": "69b0615ba3fe83fa56763cf7",
+    "recipientId": "69a98781db610ad2a01cd84f",
+    "title": "ssfbfdfdbhdb hhdh hd hh th dsh ",
+    "message": "dh dth thtd th th  t t t ",
+    "type": "manual",
+    "isRead": false,
+    "sentBy": "69b05e61a3fe83fa56763b3e",
+    "__v": 0,
+    "createdAt": "2026-03-10T18:22:19.196Z",
+    "updatedAt": "2026-03-10T18:22:19.196Z"
+  },
+  {
+    "_id": "69b061faa3fe83fa56763e25",
+    "recipientId": "69a98781db610ad2a01cd84f",
+    "title": "ssssgg et wtwrgwg wg w",
+    "message": "wrg wr gwgwrgw wgr r wg wrg wrg ghhh ethet",
+    "type": "manual",
+    "isRead": false,
+    "sentBy": "69b05e61a3fe83fa56763b3e",
+    "createdAt": "2026-03-10T18:24:58.743Z",
+    "updatedAt": "2026-03-10T18:24:58.743Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b0630ba3fe83fa56763e77",
+    "recipientId": "69a98781db610ad2a01cd84f",
+    "title": "gnhhhshs h eh heh ",
+    "message": "hh thth teh tehte ht th tht teh tehste teh ",
+    "type": "manual",
+    "isRead": false,
+    "sentBy": "69b05e61a3fe83fa56763b3e",
+    "__v": 0,
+    "createdAt": "2026-03-10T18:29:31.940Z",
+    "updatedAt": "2026-03-10T18:29:31.940Z"
+  }
+]

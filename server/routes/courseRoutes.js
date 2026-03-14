@@ -52,6 +52,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/courses - Employee creates & submits a course for approval
 router.post('/', async (req, res) => {
   try {
+    console.log('📦 Course creation request received:', JSON.stringify(req.body, null, 2));
     const {
       title, description, instructor, level, category,
       duration, thumbnail, chapters
@@ -82,7 +83,10 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({ success: true, course });
   } catch (err) {
-    console.error('Course creation error:', err);
+    console.error('❌ Course creation error:', err);
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: err.errors });
+    }
     res.status(500).json({ message: err.message });
   }
 });

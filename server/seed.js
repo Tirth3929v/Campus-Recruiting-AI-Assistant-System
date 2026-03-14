@@ -81,19 +81,19 @@ const seedData = async () => {
         userId: companyUsers[0]._id, companyName: 'Tech Corp',
         description: 'Leading innovator in AI and Cloud Computing solutions, serving Fortune 500 clients worldwide.',
         website: 'https://techcorp.example.com', location: 'San Francisco, CA', industry: 'Technology',
-        logo: 'https://via.placeholder.com/150?text=TC'
+        logo: 'https://placehold.co/150x150/4f46e5/ffffff?text=TC'
       },
       {
         userId: companyUsers[1]._id, companyName: 'DataSystems Inc',
         description: 'Enterprise data solutions provider specializing in big data analytics and business intelligence.',
         website: 'https://datasystems.example.com', location: 'New York, NY', industry: 'Data & Analytics',
-        logo: 'https://via.placeholder.com/150?text=DS'
+        logo: 'https://placehold.co/150x150/0ea5e9/ffffff?text=DS'
       },
       {
         userId: companyUsers[2]._id, companyName: 'StartupXYZ',
         description: 'Fast-growing fintech startup revolutionizing digital payments and blockchain solutions.',
         website: 'https://startupxyz.example.com', location: 'Austin, TX', industry: 'FinTech',
-        logo: 'https://via.placeholder.com/150?text=SX'
+        logo: 'https://placehold.co/150x150/8b5cf6/ffffff?text=SX'
       }
     ]);
     console.log(`   ✓ Created ${companies.length} company profiles\n`);
@@ -328,7 +328,7 @@ const seedData = async () => {
     const courses = await Course.create([
       {
         title: 'Mastering React 2024', description: 'A comprehensive guide to building modern web apps with React, Hooks, and Redux.',
-        instructor: 'Sarah Drasner', thumbnail: 'https://via.placeholder.com/300x200.png?text=React+Course',
+        instructor: 'Sarah Drasner', thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop&q=60',
         duration: '12 hours', level: 'Intermediate', category: 'Development', price: '49.99', status: 'published',
         chapters: [
           { chapterId: 'ch1', title: 'Introduction to React', content: '## Why React?\n\nReact is a declarative, component-based library for building UIs.', order: 1 },
@@ -338,7 +338,7 @@ const seedData = async () => {
       },
       {
         title: 'Node.js for Beginners', description: 'Learn the basics of Node.js, Express, and building RESTful APIs.',
-        instructor: 'Andrew Mead', thumbnail: 'https://via.placeholder.com/300x200.png?text=Node.js+Course',
+        instructor: 'Andrew Mead', thumbnail: 'https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop&q=60',
         duration: '8 hours', level: 'Beginner', category: 'Development', price: '29.99', status: 'published',
         chapters: [
           { chapterId: 'ch1', title: 'Getting Started with Node.js', content: '## What is Node.js?\n\nNode.js is a JavaScript runtime built on V8.', order: 1 },
@@ -347,7 +347,7 @@ const seedData = async () => {
       },
       {
         title: 'System Design Interview Prep', description: 'Crack system design interviews. Learn scalability, load balancing, and DB design.',
-        instructor: 'Gaurav Sen', thumbnail: 'https://via.placeholder.com/300x200.png?text=System+Design',
+        instructor: 'Gaurav Sen', thumbnail: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=800&auto=format&fit=crop&q=60',
         duration: '15 hours', level: 'Advanced', category: 'Development', price: '79.99', status: 'published',
         chapters: [
           { chapterId: 'ch1', title: 'Scalability Basics', content: '## Horizontal vs Vertical Scaling', order: 1 }
@@ -355,7 +355,7 @@ const seedData = async () => {
       },
       {
         title: 'Python for Data Science', description: 'Master Python for data analysis, visualization, and machine learning.',
-        instructor: 'Jose Portilla', thumbnail: 'https://via.placeholder.com/300x200.png?text=Python+DS',
+        instructor: 'Jose Portilla', thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=60',
         duration: '20 hours', level: 'Intermediate', category: 'Data Science', price: '59.99', status: 'published',
         chapters: [
           { chapterId: 'ch1', title: 'Python Basics', content: '## Variables and Data Types\n\nPython supports int, float, str, list, dict.', order: 1 },
@@ -364,7 +364,7 @@ const seedData = async () => {
       },
       {
         title: 'MongoDB Complete Guide', description: 'Learn MongoDB from basics to advanced aggregation pipelines.',
-        instructor: 'Max Schwarz', thumbnail: 'https://via.placeholder.com/300x200.png?text=MongoDB',
+        instructor: 'Max Schwarz', thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=60',
         duration: '10 hours', level: 'Beginner', category: 'Development', price: '39.99', status: 'published',
         chapters: [
           { chapterId: 'ch1', title: 'Introduction to MongoDB', content: '## NoSQL Databases\n\nMongoDB is a document-based NoSQL database.', order: 1 }

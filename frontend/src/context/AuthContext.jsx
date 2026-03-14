@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/user', { credentials: 'include' });
+      const res = await fetch('/api/user', { credentials: 'include' });
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);

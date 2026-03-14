@@ -33,7 +33,7 @@ const Login = () => {
 
   const handleGoogleLogin = () => {
     // Redirect to backend Google Auth endpoint
-    window.location.href = 'http://localhost:5000/auth/google';
+    window.location.href = '/auth/google';
   };
 
   return (

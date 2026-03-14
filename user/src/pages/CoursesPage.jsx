@@ -148,7 +148,7 @@ const CoursesPage = () => {
                   >
                     {/* Card Image */}
                     <div className="h-48 relative overflow-hidden">
-                      <img src={course.image} alt={course.title}
+                      <img src={course.thumbnail || course.image} alt={course.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                       <div className="absolute top-4 right-4 p-2 glass-panel rounded-lg cursor-pointer hover:bg-white/20 transition-colors">

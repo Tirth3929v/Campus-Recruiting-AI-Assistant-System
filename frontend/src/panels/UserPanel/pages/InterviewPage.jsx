@@ -523,7 +523,7 @@ const InterviewPage = () => {
     else if (finalScore >= 60) status = 'Good';
 
     try {
-      await fetch('http://localhost:5000/api/interviews', {
+      await fetch('/api/interviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -562,7 +562,7 @@ const InterviewPage = () => {
   const handleAnalyzeResume = async () => {
     setIsResumeAnalyzing(true);
     try {
-      const res = await fetch('http://localhost:5000/api/generate-questions', {
+      const res = await fetch('/api/generate-questions', {
         method: 'POST',
         credentials: 'include'
       });

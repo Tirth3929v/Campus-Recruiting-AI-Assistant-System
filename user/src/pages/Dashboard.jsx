@@ -134,7 +134,7 @@ const Dashboard = () => {
         if (!user) return;
         const fetchData = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/dashboard', { credentials: 'include' });
+                const res = await fetch('/api/dashboard', { credentials: 'include' });
                 if (res.ok) {
                     const result = await res.json();
                     setData(result);
@@ -147,7 +147,7 @@ const Dashboard = () => {
         // Fetch study resources
         const fetchResources = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/resources');
+                const res = await fetch('/api/resources');
                 if (res.ok) setStudyResources(await res.json());
             } catch (error) { console.error("Failed to fetch resources", error); }
         };
@@ -158,7 +158,7 @@ const Dashboard = () => {
 
     const handleSaveGoal = async () => {
         try {
-            await fetch('http://localhost:5000/api/user/goal', {
+            const res = await fetch('/api/user/goal', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ weeklyGoal }), credentials: 'include'
             });
@@ -174,7 +174,7 @@ const Dashboard = () => {
         setChatInput('');
         setIsLoading(true);
         try {
-            const res = await fetch('http://localhost:5000/api/chat', {
+            const res = await fetch('/api/chat', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: userMessage.text, history: chatMessages }),
                 credentials: 'include'

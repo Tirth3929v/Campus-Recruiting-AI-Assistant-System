@@ -28,7 +28,7 @@ const courseSchema = new mongoose.Schema({
   },
   duration: {
     type: String,
-    required: [true, 'Please add duration (e.g., "10h 30m")']
+    default: 'TBD'
   },
   rating: {
     type: Number,
@@ -40,7 +40,7 @@ const courseSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    default: 'https://via.placeholder.com/300'
+    default: 'https://placehold.co/600x400/6366f1/ffffff?text=Course+Image'
   },
   price: {
     type: String,
@@ -48,7 +48,7 @@ const courseSchema = new mongoose.Schema({
   },
   thumbnail: {
     type: String,
-    default: 'https://via.placeholder.com/300'
+    default: 'https://placehold.co/300x200/6366f1/ffffff?text=Course+Thumbnail'
   },
   status: {
     type: String,
@@ -78,6 +78,11 @@ const courseSchema = new mongoose.Schema({
     order: {
       type: Number,
       required: true
+    },
+    exercise: {
+      question: { type: String },
+      options: [{ type: String }],
+      answer: { type: Number }
     }
   }]
 }, { timestamps: true });

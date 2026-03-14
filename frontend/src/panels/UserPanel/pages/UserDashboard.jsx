@@ -11,7 +11,7 @@ const UserDashboard = () => {
 
   useEffect(() => {
     if (user?.id) {
-      fetch(`http://localhost:5000/api/interviews/${user.id}`)
+      fetch(`/api/interviews/${user.id}`)
         .then(res => res.json())
         .then(data => {
           setInterviews(data);

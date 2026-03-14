@@ -33,7 +33,7 @@ const labelCls = 'block text-xs font-bold text-white/30 uppercase tracking-wides
 const CourseBuilder = () => {
     const [courseData, setCourseData] = useState({
         title: '', description: '', instructor: '', level: 'Beginner',
-        category: 'Development', duration: '', thumbnail: '', createdBy: '',
+        category: 'Development', duration: 'TBD', thumbnail: '', createdBy: '',
     });
     const [chapters, setChapters] = useState([]);
     const [collapsedIds, setCollapsedIds] = useState(new Set());

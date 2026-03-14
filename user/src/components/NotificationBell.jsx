@@ -21,7 +21,7 @@ const NotificationBell = ({ basePath = '' }) => {
         fetchNotifications();
 
         // Connect socket
-        const socket = io('http://localhost:5000', {
+        const socket = io('/', {
             withCredentials: true
         });
 

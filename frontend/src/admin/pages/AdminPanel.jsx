@@ -18,21 +18,21 @@ const AdminPanel = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users', { credentials: 'include' });
+      const res = await fetch('/api/admin/users', { credentials: 'include' });
       if (res.ok) setUsers(await res.json());
     } catch (e) { console.error(e); }
   };
 
   const fetchTickets = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/tickets', { credentials: 'include' });
+      const res = await fetch('/api/admin/tickets', { credentials: 'include' });
       if (res.ok) setTickets(await res.json());
     } catch (e) { console.error(e); }
   };
 
   const handleUpdateTicket = async (id, status) => {
     try {
-      await fetch(`http://localhost:5000/api/admin/tickets/${id}`, {
+      await fetch(`/api/admin/tickets/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
@@ -44,7 +44,7 @@ const AdminPanel = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:5000/api/logout', { method: 'POST', credentials: 'include' });
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
       if (logout) logout();
       navigate('/login');
     } catch (e) { console.error(e); }

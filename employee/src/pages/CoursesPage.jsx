@@ -113,7 +113,7 @@ const CoursesPage = () => {
               {/* Card Image Area */}
               <div className="h-48 relative overflow-hidden">
                 <img 
-                  src={course.image} 
+                  src={course.thumbnail || course.image} 
                   alt={course.title} 
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />

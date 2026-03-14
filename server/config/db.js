@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
-  const localUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/campus_recruit';
+  const localUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/campus_recruit';
   console.log(`🔗 Attempting MongoDB connection to: ${localUri}`);
   
   let retries = 5;

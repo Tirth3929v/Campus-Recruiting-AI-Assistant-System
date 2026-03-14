@@ -31,7 +31,7 @@ const companyProfileSchema = new mongoose.Schema({
   },
   logo: {
     type: String,
-    default: 'https://via.placeholder.com/150' // Default placeholder if no logo uploaded
+    default: 'https://placehold.co/150x150/6366f1/ffffff?text=Logo' // Default placeholder if no logo uploaded
   },
   industry: {
     type: String
