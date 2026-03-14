@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Search, CheckCircle, AlertTriangle, Send, Loader2, User, Building2, Users } from 'lucide-react';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const Toast = ({ message, type, onDone }) => {
     useEffect(() => {

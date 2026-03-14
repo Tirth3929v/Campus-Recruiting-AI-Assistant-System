@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, Check, Loader2, Info } from 'lucide-react';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const NotificationsPage = () => {
     const [notifications, setNotifications] = useState([]);

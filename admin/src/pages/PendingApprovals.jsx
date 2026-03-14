@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, Clock, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import axiosInstance from '../api/axiosInstance';
 
 const Toast = ({ message, type, onDone }) => {
     useEffect(() => { const t = setTimeout(onDone, 3500); return () => clearTimeout(t); }, [onDone]);
@@ -35,15 +36,16 @@ const PendingApprovals = () => {
     const showToast = (message, type = 'success') => setToast({ message, type });
 
     useEffect(() => {
-        fetch('/api/admin/pending', { credentials: 'include' })
-            .then(r => r.json()).then(setPending).catch(() => showToast('Failed to load', 'error'))
+        axiosInstance.get('/admin/pending')
+            .then(res => setPending(res.data))
+            .catch(() => showToast('Failed to load', 'error'))
             .finally(() => setLoading(false));
     }, []);
 
     const handleApprove = async (user) => {
         setActionLoading(p => ({ ...p, [user._id]: 'approving' }));
         try {
-            await fetch(`/api/admin/users/${user._id}/approve`, { method: 'PUT', credentials: 'include' });
+            await axiosInstance.put(`/admin/users/${user._id}/approve`);
             setPending(prev => prev.filter(u => u._id !== user._id));
             showToast(`✅ ${user.name} approved!`);
         } catch { showToast('Failed to approve', 'error'); }
@@ -53,7 +55,7 @@ const PendingApprovals = () => {
     const handleReject = async (user) => {
         setActionLoading(p => ({ ...p, [user._id]: 'rejecting' }));
         try {
-            await fetch(`/api/admin/users/${user._id}/reject`, { method: 'DELETE', credentials: 'include' });
+            await axiosInstance.delete(`/admin/users/${user._id}/reject`);
             setPending(prev => prev.filter(u => u._id !== user._id));
             showToast(`${user.name}'s request rejected`);
         } catch { showToast('Failed to reject', 'error'); }

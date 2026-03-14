@@ -3,7 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import { User, Mail, FileText, Save, Upload, CheckCircle, Loader2, BookOpen, Briefcase, Sparkles, Award, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProfileAvatar from '../components/ProfileAvatar';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 // ─── Scroll Reveal ────────────────────────────────────────────
 const Reveal = ({ children, delay = 0, direction = "up", className = "" }) => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, FileText, Save, Upload, CheckCircle, Loader2, BookOpen, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const ProfilePage = () => {
   const navigate = useNavigate();

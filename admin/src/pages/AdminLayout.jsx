@@ -6,6 +6,7 @@ import {
   ShieldCheck, Menu, X, ChevronRight, Bell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance';
 import NotificationBell from '../components/NotificationBell';
 
 const AdminLayout = () => {
@@ -15,8 +16,9 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/pending', { credentials: 'include' })
-      .then(r => r.json()).then(d => setPendingCount(d.length)).catch(() => { });
+    axiosInstance.get('/admin/pending')
+      .then(res => setPendingCount(res.data.length))
+      .catch(() => { });
   }, []);
 
   const navItems = [

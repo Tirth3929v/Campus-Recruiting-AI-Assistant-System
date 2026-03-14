@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Briefcase, FileText, TrendingUp, Loader2, Activity, CheckCircle2, Database, Zap } from 'lucide-react';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 // ─── Animation Variants ──────────────────────────────────────────
 const containerVariants = {

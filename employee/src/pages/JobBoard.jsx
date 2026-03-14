@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, MapPin, Search, Loader2, Building2, ExternalLink } from 'lucide-react';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const typeColors = {
     'Full-time': 'bg-blue-500/15 text-blue-400 border border-blue-500/20',

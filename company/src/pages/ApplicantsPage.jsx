@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Users, Search, Filter, Eye, CheckCircle, XCircle, Clock, Star, Mail, FileText, X, Loader2 } from 'lucide-react';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const Reveal = ({ children, delay = 0, className = "" }) => {
     const ref = useRef(null);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Trash2, ChevronDown, Search, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import axiosInstance from '../api/axiosInstance';
 
 const ROLES = ['student', 'company', 'admin', 'employee'];
 const roleColors = {
@@ -57,8 +58,8 @@ const ManageUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/users', { credentials: 'include' });
-      setUsers(await res.json());
+      const res = await axiosInstance.get('/admin/users');
+      setUsers(res.data);
     } catch { showToast('Failed to load users', 'error'); }
     finally { setLoading(false); }
   };
@@ -66,7 +67,7 @@ const ManageUsers = () => {
   const handleDelete = async () => {
     if (!confirmUser) return;
     try {
-      await fetch(`/api/admin/users/${confirmUser._id}`, { method: 'DELETE', credentials: 'include' });
+      await axiosInstance.delete(`/admin/users/${confirmUser._id}`);
       setUsers(prev => prev.filter(u => u._id !== confirmUser._id));
       showToast(`${confirmUser.name} deleted`);
     } catch { showToast('Failed to delete', 'error'); }
@@ -76,12 +77,8 @@ const ManageUsers = () => {
   const handleRoleChange = async (userId, newRole) => {
     setRoleLoading(p => ({ ...p, [userId]: true }));
     try {
-      const res = await fetch(`/api/admin/users/${userId}/role`, {
-        method: 'PUT', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
-      });
-      const updated = await res.json();
+      const res = await axiosInstance.put(`/admin/users/${userId}/role`, { role: newRole });
+      const updated = res.data;
       setUsers(prev => prev.map(u => u._id === userId ? { ...u, role: updated.role } : u));
       showToast(`Role updated to ${newRole}`);
     } catch { showToast('Failed to update role', 'error'); }

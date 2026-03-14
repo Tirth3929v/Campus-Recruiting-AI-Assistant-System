@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { LayoutDashboard, Users, Briefcase, BookOpen, LogOut, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const EmployeeLayout = () => {
   const location = useLocation();

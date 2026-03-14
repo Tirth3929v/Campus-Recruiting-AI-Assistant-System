@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Search, CheckCircle, AlertTriangle, Send, Loader2, User, Building2, Users } from 'lucide-react';
+import axiosInstance from '../api/axiosInstance';
 
 const Toast = ({ message, type, onDone }) => {
     useEffect(() => {
@@ -49,11 +50,8 @@ const SendNotification = () => {
         searchTimeout.current = setTimeout(async () => {
             setIsSearching(true);
             try {
-                const res = await fetch(`/api/notifications/users-list?q=${q}&role=${roleOverride}`, { credentials: 'include' });
-                if (res.ok) {
-                    const data = await res.json();
-                    setSearchResults(data);
-                }
+                const res = await axiosInstance.get(`/notifications/users-list?q=${q}&role=${roleOverride}`);
+                setSearchResults(res.data);
             } catch (err) {
                 console.error('Search error', err);
             } finally {
@@ -79,33 +77,19 @@ const SendNotification = () => {
 
         setIsSending(true);
         try {
-            let res;
             if (isBroadcast) {
-                res = await fetch('/api/notifications/broadcast', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        targetRole,
-                        title,
-                        message
-                    })
+                await axiosInstance.post('/notifications/broadcast', {
+                    targetRole,
+                    title,
+                    message
                 });
             } else {
-                res = await fetch('/api/notifications/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        recipientId: selectedRecipient._id,
-                        title,
-                        message
-                    })
+                await axiosInstance.post('/notifications/send', {
+                    recipientId: selectedRecipient._id,
+                    title,
+                    message
                 });
             }
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || 'Failed to send notification');
 
             setToast({ message: isBroadcast ? `Broadcast sent to all ${targetRole}s!` : 'Notification sent successfully!', type: 'success' });
 

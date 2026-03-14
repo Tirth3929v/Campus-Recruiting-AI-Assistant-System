@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, Briefcase, TrendingUp, CheckCircle, Loader2, ArrowUpRight, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const containerVariants = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } };
 const itemVariants = {

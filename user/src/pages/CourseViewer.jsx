@@ -5,7 +5,7 @@ import {
     BookOpen, PlayCircle, Trophy, Clock,
     BarChart2, Loader2, AlertTriangle, Video, Home
 } from 'lucide-react';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 import TryItYourself from '../components/TryItYourself';
 
 /* ─── Fallback mock data ──────────────────────────────────────────── */

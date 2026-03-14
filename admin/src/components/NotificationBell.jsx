@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance';
 
 const NotificationBell = ({ basePath = '' }) => {
     const [notifications, setNotifications] = useState([]);
@@ -50,11 +51,9 @@ const NotificationBell = ({ basePath = '' }) => {
 
     const fetchNotifications = async () => {
         try {
-            const res = await fetch('/api/notifications', { credentials: 'include' });
-            if (!res.ok) throw new Error('Failed');
-            const data = await res.json();
-            setNotifications(data);
-            setUnreadCount(data.filter(n => !n.isRead).length);
+            const res = await axiosInstance.get('/notifications');
+            setNotifications(res.data);
+            setUnreadCount(res.data.filter(n => !n.isRead).length);
         } catch (err) {
             console.error('Failed to fetch notifications', err);
         }
@@ -63,7 +62,7 @@ const NotificationBell = ({ basePath = '' }) => {
     const markAsRead = async (id, e) => {
         e.stopPropagation();
         try {
-            await fetch(`/api/notifications/${id}/read`, { method: 'PUT', credentials: 'include' });
+            await axiosInstance.put(`/notifications/${id}/read`);
             setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (err) {
@@ -73,7 +72,7 @@ const NotificationBell = ({ basePath = '' }) => {
 
     const markAllRead = async () => {
         try {
-            await fetch('/api/notifications/read-all', { method: 'PUT', credentials: 'include' });
+            await axiosInstance.put('/notifications/read-all');
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
         } catch (err) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, Trash2, Search, Loader2, AlertTriangle, CheckCircle2, MapPin, Building2 } from 'lucide-react';
+import axiosInstance from '../api/axiosInstance';
 
 const typeColors = {
   'Full-time': 'bg-blue-500/15 text-blue-400 border border-blue-500/20',
@@ -59,15 +60,16 @@ const ManageJobs = () => {
   const showToast = (m, t = 'success') => setToast({ message: m, type: t });
 
   useEffect(() => {
-    fetch('/api/admin/jobs', { credentials: 'include' })
-      .then(r => r.json()).then(setJobs).catch(() => showToast('Failed to load', 'error'))
+    axiosInstance.get('/admin/jobs')
+      .then(res => setJobs(res.data))
+      .catch(() => showToast('Failed to load', 'error'))
       .finally(() => setLoading(false));
   }, []);
 
   const handleDelete = async () => {
     if (!confirmJob) return;
     try {
-      await fetch(`/api/admin/jobs/${confirmJob._id}`, { method: 'DELETE', credentials: 'include' });
+      await axiosInstance.delete(`/admin/jobs/${confirmJob._id}`);
       setJobs(prev => prev.filter(j => j._id !== confirmJob._id));
       showToast(`"${confirmJob.title}" removed`);
     } catch { showToast('Failed to remove', 'error'); }

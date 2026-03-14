@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Video, VideoOff, Send, StopCircle, AlertCircle, CheckCircle, ArrowRight, Loader2, Maximize, Settings } from 'lucide-react';
 import ScreenRecorder from '../components/ScreenRecorder';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const InterviewPage = () => {
     const location = useLocation();

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Mail, ShieldCheck, AlertCircle, Eye, EyeOff, ArrowRight, Zap, Users, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance';
 
 const perks = [
   { icon: Users, label: 'User Management', desc: 'Full control over all platform users' },
@@ -22,19 +23,14 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true); setError('');
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form), credentials: 'include'
-      });
-      const data = await res.json();
-      if (res.ok) {
-        if (data.token) localStorage.setItem('token', data.token);
-        login(data.user);
-        navigate('/dashboard');
-      } else {
-        setError(data.error || 'Login failed');
-      }
-    } catch { setError('Cannot connect to server'); }
+      const res = await axiosInstance.post('/login', form);
+      const data = res.data;
+      if (data.token) localStorage.setItem('token', data.token);
+      login(data.user);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Login failed or connection error');
+    }
     finally { setLoading(false); }
   };
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, ArrowRight, CheckCircle } from 'lucide-react';
+import axiosInstance from '../api/axiosInstance';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -17,22 +18,10 @@ const ForgotPassword = () => {
     setMessage('');
 
     try {
-      const res = await fetch('/api/forgot-password', {
-
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage(data.message);
-      } else {
-        setError(data.error || 'Request failed');
-      }
+      const res = await axiosInstance.post('/forgot-password', { email });
+      setMessage(res.data.message);
     } catch (err) {
-      setError('Failed to connect to server');
+      setError(err.response?.data?.error || 'Request failed');
     } finally {
       setLoading(false);
     }

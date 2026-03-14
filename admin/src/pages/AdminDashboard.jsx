@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Users, Briefcase, FileText, TrendingUp, Loader2, Activity, Zap, Database, CheckCircle2, ArrowUpRight } from 'lucide-react';
+import axiosInstance from '../api/axiosInstance';
 
 const containerVariants = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } };
 const itemVariants = {
@@ -61,9 +59,11 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/dashboard', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) { setStats(d.stats || stats); setRecentActivity(d.recentActivity || []); } })
+    axiosInstance.get('/admin/dashboard')
+      .then(res => {
+        setStats(res.data.stats || stats);
+        setRecentActivity(res.data.recentActivity || []);
+      })
       .catch(() => { })
       .finally(() => setLoading(false));
   }, []);

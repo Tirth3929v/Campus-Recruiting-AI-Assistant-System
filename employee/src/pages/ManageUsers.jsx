@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Trash2, Shield, ChevronDown, Search, Loader2, AlertTriangle, CheckCircle, FileText, X } from 'lucide-react';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const ROLES = ['student', 'company', 'admin'];
 

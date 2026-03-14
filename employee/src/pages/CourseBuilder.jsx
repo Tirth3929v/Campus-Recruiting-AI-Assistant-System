@@ -5,7 +5,7 @@ import {
     CheckCircle2, Loader2, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const Toast = ({ type, message }) => {
     const styles = {

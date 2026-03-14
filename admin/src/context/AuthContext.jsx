@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axiosInstance from '../api/axiosInstance';
 
 const AuthContext = createContext();
 
@@ -11,17 +12,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = { ...(token && { Authorization: `Bearer ${token}` }) };
-        const res = await fetch('/api/currentuser', { credentials: 'include', headers });
-        if (res.ok) {
-          const userData = await res.json();
-          setUser(userData || null);
-        } else {
-          setUser(null);
-        }
+        const res = await axiosInstance.get('/currentuser');
+        setUser(res.data || null);
       } catch (error) {
-        console.error('Session check failed', error);
+        console.error('Session check failed:', error.response?.data?.error || error.message);
         setUser(null);
       } finally {
         setLoading(false);
@@ -36,9 +30,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      await axiosInstance.post('/logout');
     } catch (error) {
-      console.error("Logout API failed", error);
+      console.error("Logout API failed:", error.message);
     }
     localStorage.removeItem('token');
     setUser(null);
