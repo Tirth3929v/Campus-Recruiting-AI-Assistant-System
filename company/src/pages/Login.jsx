@@ -15,6 +15,7 @@ const Login = () => {
   const { checkAuth } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [approvalStatus, setApprovalStatus] = useState(null); // 'pending' or 'rejected'
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -28,10 +29,13 @@ const Login = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        if (data.token) localStorage.setItem('token', data.token);
+        if (data.token) localStorage.setItem('company_token', data.token);
         await checkAuth();
         navigate('/company/dashboard');
-      } else { setError(data.error || 'Login failed'); }
+      } else { 
+        setError(data.error || 'Login failed');
+        if (data.status) setApprovalStatus(data.status);
+      }
     } catch (err) { setError('Failed to connect to server'); }
     finally { setLoading(false); }
   };
@@ -99,7 +103,12 @@ const Login = () => {
           </div>
           {error && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm text-center font-medium">
+              className={`mb-6 p-4 rounded-xl text-sm font-medium flex items-center gap-3 border ${
+                approvalStatus === 'pending' 
+                  ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' 
+                  : 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400'
+              }`}>
+              <div className={`w-2 h-2 rounded-full animate-pulse ${approvalStatus === 'pending' ? 'bg-amber-500' : 'bg-red-500'}`} />
               {error}
             </motion.div>
           )}

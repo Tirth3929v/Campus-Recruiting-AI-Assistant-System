@@ -17,6 +17,7 @@ import CourseBuilder from './pages/CourseBuilder';
 import JobBoard from './pages/JobBoard';
 import MyProfile from './pages/MyProfile';
 import SendNotification from './pages/SendNotification';
+import CompanyApprovals from './pages/CompanyApprovals';
 
 const App = () => {
   return (
@@ -41,6 +42,7 @@ const App = () => {
               <Route path="courses" element={<CourseBuilder />} />
               <Route path="jobs" element={<JobBoard />} />
               <Route path="notifications/send" element={<SendNotification />} />
+              <Route path="approvals" element={<CompanyApprovals />} />
               <Route path="profile" element={<MyProfile />} />
             </Route>
 

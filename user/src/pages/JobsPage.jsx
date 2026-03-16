@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import axiosInstance from '../api/axiosInstance';
 import { motion, useInView } from 'framer-motion';
-import { Search, MapPin, Filter, Briefcase, DollarSign, Clock, ArrowUpRight, Sparkles, Loader2 } from 'lucide-react';
+import { Search, MapPin, Filter, Briefcase, DollarSign, Clock, ArrowUpRight, Sparkles, Loader2, Eye } from 'lucide-react';
 
 // ─── Scroll Reveal ────────────────────────────────────────────
 const Reveal = ({ children, delay = 0, className = "" }) => {
@@ -16,52 +18,91 @@ const Reveal = ({ children, delay = 0, className = "" }) => {
   );
 };
 
-const JobCard = ({ job, index }) => (
+const JobCard = ({ job, index, onApply, applying }) => (
   <Reveal delay={index * 0.08}>
     <motion.div
       whileHover={{ y: -6, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      className="glass-card-interactive rounded-2xl p-6 group gradient-border h-full flex flex-col"
+      className="glass-card-interactive rounded-2xl p-8 group gradient-border h-full flex flex-col"
     >
-      <div className="flex justify-between items-start mb-4">
-        <motion.div whileHover={{ rotate: 5, scale: 1.1 }}
-          className={`h-12 w-12 rounded-xl ${job.color || 'bg-gradient-to-br from-violet-500 to-purple-600'} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
-          {job.logo || job.company?.charAt(0) || '?'}
-        </motion.div>
+      <div className="flex justify-between items-start mb-6">
+        <Link to={`/student/jobs/${job.id}`}>
+          <motion.div whileHover={{ rotate: 5, scale: 1.1 }}
+            className={`h-14 w-14 rounded-xl overflow-hidden ${job.color || 'bg-gradient-to-br from-violet-500 to-purple-600'} flex items-center justify-center text-white font-bold text-xl shadow-lg`}>
+            {/* Same logo logic */}
+            {typeof job.logo === 'string' && (job.logo.startsWith('http') || job.logo.startsWith('/')) ? (
+              <img 
+                src={job.logo} 
+                alt={job.company} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.style.display = 'none';
+                  e.target.parentNode.innerText = job.company?.charAt(0) || '?';
+                }}
+              />
+            ) : (
+              job.logo || job.company?.charAt(0) || '?'
+            )}
+          </motion.div>
+        </Link>
         <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-gray-100 dark:border-white/10">
           {job.posted}
         </span>
       </div>
 
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{job.title}</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-4">{job.company}</p>
+      <Link to={`/student/jobs/${job.id}`} className="block group/title">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover/title:text-purple-600 dark:group-hover/title:text-purple-400 transition-colors mb-1">{job.title}</h3>
+      </Link>
+      <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-6">{job.company}</p>
 
-      <div className="space-y-2 mb-5 flex-1">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <MapPin size={14} className="text-gray-400 flex-shrink-0" /> {job.location}
+      <div className="space-y-3 mb-6 flex-1">
+        <div className="flex items-center gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+          <MapPin size={16} className="text-gray-400 flex-shrink-0" /> {job.location}
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <DollarSign size={14} className="text-gray-400 flex-shrink-0" /> {job.salary}
+        <div className="flex items-center gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+          <DollarSign size={16} className="text-gray-400 flex-shrink-0" /> {job.salary}
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <Clock size={14} className="text-gray-400 flex-shrink-0" /> {job.type}
+        <div className="flex items-center gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+          <Clock size={16} className="text-gray-400 flex-shrink-0" /> {job.type}
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1.5 mb-5">
+      <div className="flex flex-wrap gap-2 mb-6">
         {(job.tags || []).map((tag, i) => (
-          <span key={i} className="text-xs bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 px-2.5 py-1 rounded-lg font-medium border border-violet-100 dark:border-violet-500/20">
+          <span key={i} className="text-xs bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 px-3 py-1.5 rounded-lg font-medium border border-violet-100 dark:border-violet-500/20">
             {tag}
           </span>
         ))}
       </div>
 
-      <motion.button
-        whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-        className="w-full py-3 rounded-xl btn-gradient font-bold flex items-center justify-center gap-2"
-      >
-        Apply Now <ArrowUpRight size={16} />
-      </motion.button>
+      <div className="flex gap-3">
+        <Link 
+          to={`/student/jobs/${job.id}`} 
+          className="flex-1 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+        >
+          <Eye size={18} /> Details
+        </Link>
+        <motion.button
+          onClick={() => onApply(job.id)}
+          disabled={applying === job.id || job.isApplied}
+          whileHover={{ scale: job.isApplied ? 1 : 1.03 }} 
+          whileTap={{ scale: job.isApplied ? 1 : 0.97 }}
+          className={`flex-[2] py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+            job.isApplied 
+              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 cursor-default"
+              : "btn-gradient text-white shadow-md hover:shadow-lg disabled:opacity-50"
+          }`}
+        >
+          {applying === job.id ? (
+            <Loader2 className="animate-spin" size={18} />
+          ) : job.isApplied ? (
+            <>Already Applied ✅</>
+          ) : (
+            <>Apply Now <ArrowUpRight size={18} /></>
+          )}
+        </motion.button>
+      </div>
     </motion.div>
   </Reveal>
 );
@@ -70,23 +111,47 @@ const JobsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(null);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/jobs', { credentials: 'include' });
-        if (res.ok) {
-          setJobs(await res.json());
-        }
-      } catch (err) {
-        console.error('Failed to fetch jobs:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchJobs();
   }, []);
+
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      const res = await axiosInstance.get('/jobs');
+      setJobs(res.data);
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApply = async (jobId) => {
+    try {
+      setApplying(jobId);
+      const res = await axiosInstance.post(`/jobs/${jobId}/apply`);
+      if (res.data.success) {
+        // Update local state to show 'Already Applied' without refetching all
+        setJobs(prev => prev.map(j => j.id === jobId ? { ...j, isApplied: true } : j));
+        alert('Application submitted successfully!');
+      }
+    } catch (err) {
+      console.error('Apply error:', err);
+      const msg = err.response?.data?.message || 'Failed to submit application';
+      
+      // Special alert for missing resume
+      if (msg.toLowerCase().includes('resume')) {
+        alert(`❌ Error: ${msg}\n\nPlease head to your Profile page to upload your resume before applying.`);
+      } else {
+        alert(msg);
+      }
+    } finally {
+      setApplying(null);
+    }
+  };
 
   const filteredJobs = jobs.filter(job =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -137,7 +202,7 @@ const JobsPage = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredJobs.map((job, index) => (
-                <JobCard key={job.id} job={job} index={index} />
+                <JobCard key={job.id} job={job} index={index} onApply={handleApply} applying={applying} />
               ))}
             </div>
 

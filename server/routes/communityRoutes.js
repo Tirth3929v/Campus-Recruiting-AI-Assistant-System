@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const CommunityPost = require('../models/CommunityPost');
+const { protect } = require('../middleware/authMiddleware');
 
 // GET /api/community/posts
 router.get('/posts', async (req, res) => {
@@ -34,10 +35,9 @@ router.get('/posts', async (req, res) => {
 });
 
 // POST /api/community/posts
-router.post('/posts', async (req, res) => {
+router.post('/posts', protect, async (req, res) => {
     try {
-        const userId = req.user?.id;
-        if (!userId) return res.status(401).json({ message: 'Not authenticated' });
+        const userId = req.user.id || req.user._id;
 
         const post = await CommunityPost.create({
             author: userId,
@@ -62,10 +62,9 @@ router.post('/posts', async (req, res) => {
 });
 
 // POST /api/community/posts/:id/like
-router.post('/posts/:id/like', async (req, res) => {
+router.post('/posts/:id/like', protect, async (req, res) => {
     try {
-        const userId = req.user?.id;
-        if (!userId) return res.status(401).json({ message: 'Not authenticated' });
+        const userId = req.user.id || req.user._id;
 
         const post = await CommunityPost.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
@@ -85,10 +84,9 @@ router.post('/posts/:id/like', async (req, res) => {
 });
 
 // POST /api/community/posts/:id/comments
-router.post('/posts/:id/comments', async (req, res) => {
+router.post('/posts/:id/comments', protect, async (req, res) => {
     try {
-        const userId = req.user?.id;
-        if (!userId) return res.status(401).json({ message: 'Not authenticated' });
+        const userId = req.user.id || req.user._id;
 
         const post = await CommunityPost.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });

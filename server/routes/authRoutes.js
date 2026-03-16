@@ -17,15 +17,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.post('/signup', authController.signup);
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.post('/verify-otp', authController.verifyOTP);
+router.post('/resend-otp', authController.resendOTP);
 
 router.post('/forgot-password', authController.forgotPassword);
-
 router.put('/reset-password/:resetToken', authController.resetPassword);
 
 router.put('/profile', protect, upload.fields([
   { name: 'resume', maxCount: 1 },
   { name: 'profilePicture', maxCount: 1 }
 ]), authController.updateProfile);
+
+router.post('/logout', authController.logout);
 
 module.exports = router;

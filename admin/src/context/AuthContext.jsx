@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Logout API failed:", error.message);
     }
-    localStorage.removeItem('token');
+    localStorage.removeItem('admin_token');
     setUser(null);
   };
 

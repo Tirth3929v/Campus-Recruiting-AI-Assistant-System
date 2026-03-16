@@ -188,6 +188,46 @@
     background-size: 200% 100%;
 }
 
+/* Quill Dark Mode Overrides */
+.quill-dark-editor {
+    background: transparent;
+    color: white;
+}
+.ql-toolbar.ql-snow {
+    border: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    background: rgba(255,255,255,0.02);
+}
+.ql-container.ql-snow {
+    border: none !important;
+    font-family: inherit;
+    font-size: 14px;
+    min-height: 200px;
+}
+.ql-editor {
+    min-height: 200px;
+    line-height: 1.6;
+}
+.ql-snow .ql-stroke { stroke: rgba(255,255,255,0.5) !important; }
+.ql-snow .ql-fill { fill: rgba(255,255,255,0.5) !important; }
+.ql-snow .ql-picker { color: rgba(255,255,255,0.5) !important; }
+.ql-snow .ql-picker-options { 
+    background-color: #111827 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+}
+.ql-active {
+    color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+}
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow.ql-toolbar button.ql-active .ql-stroke {
+  stroke: #10b981 !important;
+}
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow.ql-toolbar button.ql-active .ql-fill {
+  fill: #10b981 !important;
+}
+
 .animate-gradient-shift {
     background-size: 200% 200%;
     animation: gradientShift 6s ease-in-out infinite;

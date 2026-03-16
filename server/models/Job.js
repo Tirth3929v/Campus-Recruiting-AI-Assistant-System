@@ -15,8 +15,14 @@ const jobSchema = new mongoose.Schema({
   // Reference to the User who posted the job (recruiter/admin)
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    refPath: 'posterModel',
     required: true
+  },
+  posterModel: {
+    type: String,
+    required: true,
+    enum: ['Admin', 'Employee', 'CompanyUser', 'User'],
+    default: 'CompanyUser'
   },
   description: {
     type: String,
@@ -47,7 +53,11 @@ const jobSchema = new mongoose.Schema({
   applicants: [{
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'Student'
+    },
+    resumeLink: {
+      type: String,
+      required: true
     },
     status: {
       type: String,

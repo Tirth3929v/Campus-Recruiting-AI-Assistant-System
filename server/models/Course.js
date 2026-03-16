@@ -69,7 +69,7 @@ const courseSchema = new mongoose.Schema({
       required: true
     },
     content: {
-      type: String, // Expect HTML/Markdown
+      type: String, // Expect HTML string from Rich Text Editor
       required: true
     },
     videoUrl: {
@@ -79,6 +79,10 @@ const courseSchema = new mongoose.Schema({
       type: Number,
       required: true
     },
+    interactiveCodes: [{
+      title: { type: String, required: true },
+      initialCode: { type: String, required: true }
+    }],
     exercise: {
       question: { type: String },
       options: [{ type: String }],

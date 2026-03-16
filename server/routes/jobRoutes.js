@@ -5,6 +5,8 @@ const Application = require('../models/Application');
 const CompanyProfile = require('../models/CompanyProfile');
 const StudentProfile = require('../models/StudentProfile');
 
+const { protect } = require('../middleware/authMiddleware');
+
 // GET /api/jobs — public listing of all open jobs
 router.get('/', async (req, res) => {
     try {
@@ -27,6 +29,20 @@ router.get('/', async (req, res) => {
             );
         }
 
+        // Check if current user is logged in to mark 'isApplied'
+        let currentUserId = null;
+        // Optional: If we want to support showing 'isApplied' for logged in users
+        // This would require the route to be optionally protected or manually checking token
+        // For now, we manually check the token from cookies if available for high-performance listing
+        const jwt = require('jsonwebtoken');
+        const token = req.cookies?.cr_token;
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'campus_recruit_jwt_secret_2026_secure_key');
+                currentUserId = decoded.id || decoded._id;
+            } catch (err) { /* token invalid, proceed as guest */ }
+        }
+
         // Map to frontend-friendly format
         const result = jobs.map(j => {
             const colors = [
@@ -40,15 +56,17 @@ router.get('/', async (req, res) => {
                 id: j._id,
                 title: j.title,
                 company: j.company?.companyName || 'Unknown Company',
+                companyId: j.company?._id,
                 location: j.location,
                 salary: j.salary,
                 type: j.type,
                 posted: _timeAgo(j.createdAt),
                 tags: j.requirements?.slice(0, 4) || [],
                 description: j.description,
-                logo: (j.company?.companyName || 'U').charAt(0),
+                logo: j.company?.logo || (j.company?.companyName || 'U').charAt(0),
                 color: colors[Math.floor(Math.random() * colors.length)],
-                applicantCount: j.applicants?.length || 0
+                applicantCount: j.applicants?.length || 0,
+                isApplied: currentUserId ? j.applicants.some(a => a.user?.toString() === currentUserId.toString()) : false
             };
         });
 
@@ -67,8 +85,28 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ message: 'Job not found' });
         }
         const job = await Job.findById(req.params.id)
-            .populate('company', 'companyName logo location description website');
+            .populate('company', 'companyName logo location description website')
+            .lean();
+        
         if (!job) return res.status(404).json({ message: 'Job not found' });
+
+        // Add isApplied status if logged in
+        let currentUserId = null;
+        const jwt = require('jsonwebtoken');
+        const token = req.cookies?.cr_token;
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'campus_recruit_jwt_secret_2026_secure_key');
+                currentUserId = decoded.id || decoded._id;
+            } catch (err) { /* invalid token */ }
+        }
+
+        if (currentUserId) {
+            job.isApplied = job.applicants?.some(a => a.user?.toString() === currentUserId.toString()) || false;
+        } else {
+            job.isApplied = false;
+        }
+
         res.json(job);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -76,34 +114,47 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/jobs/:id/apply — student applies to a job
-router.post('/:id/apply', async (req, res) => {
+router.post('/:id/apply', protect, async (req, res) => {
     try {
-        const userId = req.user?.id;
-        if (!userId) return res.status(401).json({ message: 'Not authenticated' });
-
+        const userId = req.user.id || req.user._id;
+        
+        // Find Job
         const job = await Job.findById(req.params.id);
         if (!job) return res.status(404).json({ message: 'Job not found' });
 
         // Check if already applied
-        const alreadyApplied = job.applicants.some(a => a.user?.toString() === userId);
+        const alreadyApplied = job.applicants.some(a => a.user?.toString() === userId.toString());
         if (alreadyApplied) return res.status(400).json({ message: 'Already applied to this job' });
 
-        // Add to job applicants
-        job.applicants.push({ user: userId, status: 'Applied' });
+        // 🛡️ [RESUME VALIDATION] - Must have a resume in User or StudentProfile
+        // Check StudentProfile first
+        let studentProfile = await StudentProfile.findOne({ user: userId });
+        const resumeLink = studentProfile?.resume || req.user?.resume;
+
+        if (!resumeLink) {
+          return res.status(400).json({ message: 'Please upload a resume in your profile before applying.' });
+        }
+
+        // Add to job applicants array
+        job.applicants.push({ 
+          user: userId, 
+          resumeLink: resumeLink,
+          status: 'Applied' 
+        });
         await job.save();
 
-        // Also create Application record
-        const studentProfile = await StudentProfile.findOne({ user: userId });
+        // Create formal Application record
         if (studentProfile) {
             await Application.create({
                 job: job._id,
                 student: studentProfile._id,
+                resume: resumeLink, // snapshot
                 status: 'Applied',
                 coverLetter: req.body.coverLetter || ''
             });
         }
 
-        res.json({ success: true, message: 'Application submitted!' });
+        res.json({ success: true, message: 'Application submitted successfully!' });
     } catch (err) {
         console.error('Apply error:', err);
         res.status(500).json({ message: err.message });
@@ -111,9 +162,9 @@ router.post('/:id/apply', async (req, res) => {
 });
 
 // POST /api/jobs — create a new job posting (company/admin only)
-router.post('/', async (req, res) => {
+router.post('/', protect, async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user.id || req.user._id;
         if (!userId) return res.status(401).json({ message: 'Not authenticated' });
 
         const { title, company, location, salary, type, description, tags } = req.body;
@@ -148,9 +199,9 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/jobs/:id — update an existing job posting
-router.put('/:id', async (req, res) => {
+router.put('/:id', protect, async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user.id || req.user._id;
         if (!userId) return res.status(401).json({ message: 'Not authenticated' });
         
         const job = await Job.findById(req.params.id);
@@ -178,9 +229,9 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/jobs/:id — delete a job posting
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', protect, async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user.id || req.user._id;
         if (!userId) return res.status(401).json({ message: 'Not authenticated' });
 
         const job = await Job.findById(req.params.id);

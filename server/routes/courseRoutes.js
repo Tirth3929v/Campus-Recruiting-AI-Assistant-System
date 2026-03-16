@@ -4,22 +4,9 @@ const jwt = require('jsonwebtoken');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 const StudentProfile = require('../models/StudentProfile');
+const { protect } = require('../middleware/authMiddleware');
 
-// Custom verify token middleware for these specific routes
-const verifyAuthToken = (req, res, next) => {
-  let token = req.cookies?.token;
-  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-
-  if (!token) return res.status(401).json({ error: 'Access denied' });
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET || 'campus_recruit_jwt_secret_2026_secure_key');
-    next();
-  } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-};
+// verifyAuthToken removed in favor of centralized 'protect' middleware
 
 // GET /api/courses - list all published courses (students)
 router.get('/', async (req, res) => {
@@ -28,6 +15,19 @@ router.get('/', async (req, res) => {
     const filter = status ? { status } : {};
     const courses = await Course.find(filter).sort({ createdAt: -1 });
     res.json(courses);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/courses/my-enrollments - list all enrollments for current student
+router.get('/my-enrollments', protect, async (req, res) => {
+  try {
+    const studentProfile = await StudentProfile.findOne({ user: req.user.id });
+    if (!studentProfile) return res.status(404).json({ message: 'Student profile not found' });
+
+    const enrollments = await Enrollment.find({ student: studentProfile._id });
+    res.json(enrollments);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -112,7 +112,7 @@ router.patch('/:id/status', async (req, res) => {
 });
 
 // GET /api/courses/:id/enrollment - Get current user's enrollment
-router.get('/:id/enrollment', verifyAuthToken, async (req, res) => {
+router.get('/:id/enrollment', protect, async (req, res) => {
   try {
     const studentProfile = await StudentProfile.findOne({ user: req.user.id });
     if (!studentProfile) return res.status(404).json({ message: 'Student profile not found' });
@@ -129,7 +129,7 @@ router.get('/:id/enrollment', verifyAuthToken, async (req, res) => {
 });
 
 // POST /api/courses/:id/enroll - Enroll or get existing enrollment
-router.post('/:id/enroll', verifyAuthToken, async (req, res) => {
+router.post('/:id/enroll', protect, async (req, res) => {
   try {
     let studentProfile = await StudentProfile.findOne({ user: req.user.id });
     
@@ -164,7 +164,7 @@ router.post('/:id/enroll', verifyAuthToken, async (req, res) => {
 });
 
 // PUT /api/courses/:id/progress - Mark a chapter as complete
-router.put('/:id/progress', verifyAuthToken, async (req, res) => {
+router.put('/:id/progress', protect, async (req, res) => {
   try {
     const { chapterId } = req.body;
 

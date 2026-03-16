@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, MessageSquare, CheckCircle, Search, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import axiosInstance from '../../api/axiosInstance';
 
 const AdminPanel = () => {
   const { logout } = useAuth();
@@ -18,33 +19,28 @@ const AdminPanel = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/admin/users', { credentials: 'include' });
-      if (res.ok) setUsers(await res.json());
+      const res = await axiosInstance.get('/admin/users');
+      setUsers(res.data);
     } catch (e) { console.error(e); }
   };
 
   const fetchTickets = async () => {
     try {
-      const res = await fetch('/api/admin/tickets', { credentials: 'include' });
-      if (res.ok) setTickets(await res.json());
+      const res = await axiosInstance.get('/admin/tickets');
+      setTickets(res.data);
     } catch (e) { console.error(e); }
   };
 
   const handleUpdateTicket = async (id, status) => {
     try {
-      await fetch(`/api/admin/tickets/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-        credentials: 'include'
-      });
+      await axiosInstance.put(`/admin/tickets/${id}`, { status });
       fetchTickets();
     } catch (e) { console.error(e); }
   };
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      await axiosInstance.post('/logout');
       if (logout) logout();
       navigate('/login');
     } catch (e) { console.error(e); }

@@ -4,11 +4,11 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ChatProvider } from './context/ChatContext';
 import UserLayout from './layouts/UserLayout';
+import AuthLayout from './layouts/AuthLayout';
 import Dashboard from './pages/Dashboard';
 import InterviewPage from './pages/InterviewPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import SignUp from './pages/Signup';
 import ProtectedRoute from './pages/ProtectedRoute';
 import ProfilePage from './pages/ProfilePage';
 import JobsPage from './pages/JobsPage';
@@ -16,6 +16,7 @@ import CoursesPage from './pages/CoursesPage';
 import CourseViewer from './pages/CourseViewer';
 import HistoryPage from './pages/HistoryPage';
 import NotificationsPage from './pages/NotificationsPage';
+import JobDetails from './pages/JobDetails';
 
 const App = () => {
   return (
@@ -24,10 +25,11 @@ const App = () => {
         <ThemeProvider>
           <ChatProvider>
             <Routes>
-              {/* ---------- Public ---------- */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/signup" element={<SignUp />} />
+              {/* ---------- Public Auth Routes ---------- */}
+              <Route element={<AuthLayout />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+              </Route>
 
               {/* ---------- Student Portal (with persistent sidebar layout) ---------- */}
               <Route
@@ -43,6 +45,7 @@ const App = () => {
                 <Route path="interview" element={<InterviewPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="jobs" element={<JobsPage />} />
+                <Route path="jobs/:id" element={<JobDetails />} />
                 <Route path="courses" element={<CoursesPage />} />
                 <Route path="courses/:id" element={<CourseViewer />} />
                 <Route path="history" element={<HistoryPage />} />

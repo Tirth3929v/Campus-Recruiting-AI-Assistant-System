@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, Sparkles, Rocket, Target, BookOpen, Users, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance';
 
 const features = [
   { icon: Rocket, title: "AI-Powered Interviews", desc: "Practice with our intelligent AI interviewer" },
@@ -13,7 +14,7 @@ const features = [
 
 const Login = () => {
   const navigate = useNavigate();
-  const { checkAuth } = useAuth();
+  const { login: authLogin } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,19 +24,24 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData), credentials: 'include'
-      });
-      const data = await res.json();
-      if (res.ok) {
-        if (data.token) localStorage.setItem('token', data.token);
-        await checkAuth();
+      const res = await axiosInstance.post('/auth/login', formData);
+      if (res.data.token) {
+        await authLogin(res.data.token, res.data.user);
         navigate('/student/dashboard');
-      } else {
-        setError(data.error || 'Login failed');
       }
-    } catch (err) { setError('Failed to connect to server'); }
+    } catch (err) { 
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Login failed';
+      setError(msg);
+      
+      if (err.response?.data?.isUnverified) {
+        // Option to redirect to registration to trigger OTP resend
+        setError(
+          <span>
+            {msg} <Link to="/register" state={{ email: formData.email }} className="underline font-bold ml-1">Verify Now</Link>
+          </span>
+        );
+      }
+    }
     finally { setLoading(false); }
   };
 

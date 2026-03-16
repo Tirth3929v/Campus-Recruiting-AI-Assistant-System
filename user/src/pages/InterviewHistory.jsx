@@ -25,11 +25,8 @@ const InterviewHistory = () => {
         document.title = "Interview History | Campus Recruit";
         const fetchHistory = async () => {
             try {
-                const res = await fetch('/api/interviews', { credentials: 'include' });
-                if (res.ok) {
-                    const data = await res.json();
-                    setInterviews(data);
-                }
+                const res = await axiosInstance.get('/interviews');
+                setInterviews(res.data);
             } catch (error) {
                 console.error("Failed to fetch history", error);
             }

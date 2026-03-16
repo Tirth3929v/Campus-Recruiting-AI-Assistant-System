@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../api/axiosInstance';
 import { Briefcase, Users, Calendar, TrendingUp, ArrowUpRight, Clock, CheckCircle, XCircle, Eye, Plus, Sparkles, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -76,10 +77,8 @@ const CompanyDashboard = () => {
         const fetchDashboard = async () => {
             try {
                 setLoading(true);
-                const res = await fetch('/api/company/dashboard', { credentials: 'include' });
-                if (res.ok) {
-                    setDashboardData(await res.json());
-                }
+                const res = await axiosInstance.get('/company/dashboard');
+                setDashboardData(res.data);
             } catch (err) {
                 console.error('Failed to fetch company dashboard:', err);
             } finally {

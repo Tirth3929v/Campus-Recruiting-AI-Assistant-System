@@ -18,11 +18,8 @@ const Community = () => {
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch('/api/posts', { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        setPosts(data);
-      }
+      const res = await axiosInstance.get('/posts');
+      setPosts(res.data);
     } catch (error) {
       console.error("Failed to fetch posts", error);
     }
@@ -33,18 +30,9 @@ const Community = () => {
     if (!newPost.trim()) return;
 
     try {
-      const res = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newPost }),
-        credentials: 'include'
-      });
-      
-      if (res.ok) {
-        const post = await res.json();
-        setPosts([{ ...post, content: newPost }, ...posts]);
-        setNewPost('');
-      }
+      const res = await axiosInstance.post('/posts', { content: newPost });
+      setPosts([res.data, ...posts]);
+      setNewPost('');
     } catch (error) {
       console.error("Failed to create post", error);
     }

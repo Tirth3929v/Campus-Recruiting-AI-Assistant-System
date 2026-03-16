@@ -34,7 +34,13 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  otp: String,
+  otpExpires: Date,
   currentStreak: {
+    type: Number,
+    default: 0
+  },
+  longestStreak: {
     type: Number,
     default: 0
   },

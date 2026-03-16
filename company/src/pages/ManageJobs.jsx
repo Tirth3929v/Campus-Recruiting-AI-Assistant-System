@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axiosInstance from '../api/axiosInstance';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { Plus, Search, Edit3, Trash2, MapPin, DollarSign, Clock, Users, X, Briefcase, ArrowUpRight } from 'lucide-react';
 
@@ -32,10 +33,14 @@ const ManageJobs = () => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch('/api/jobs');
-      if (res.ok) { setJobs(await res.json()); }
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+      setLoading(true);
+      const res = await axiosInstance.get('/jobs');
+      setJobs(res.data);
+    } catch (e) {
+      console.error('Error fetching jobs:', e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -43,28 +48,26 @@ const ManageJobs = () => {
     const payload = { ...formData, tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean) };
     try {
       if (editingJob) {
-        const res = await fetch(`/api/jobs/${editingJob._id}`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload), credentials: 'include'
-        });
-        if (res.ok) fetchJobs();
+        await axiosInstance.put(`/jobs/${editingJob._id}`, payload, { withCredentials: true });
       } else {
-        const res = await fetch('/api/jobs', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload), credentials: 'include'
-        });
-        if (res.ok) fetchJobs();
+        await axiosInstance.post('/jobs', payload, { withCredentials: true });
       }
-    } catch (e) { console.error(e); }
-    closeModal();
+      fetchJobs();
+      closeModal();
+    } catch (e) {
+      console.error('Error saving job:', e);
+      alert(e.response?.data?.message || 'Failed to save job');
+    }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this job posting?')) return;
     try {
-      await fetch(`/api/jobs/${id}`, { method: 'DELETE', credentials: 'include' });
+      await axiosInstance.delete(`/jobs/${id}`);
       fetchJobs();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error('Error deleting job:', e);
+    }
   };
 
   const openCreate = () => { setEditingJob(null); setFormData(emptyJob); setShowModal(true); };

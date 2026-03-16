@@ -8,13 +8,19 @@ const interviewSchema = new mongoose.Schema({
   },
   candidate: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Student',
     required: true,
   },
   interviewer: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    refPath: 'interviewerModel',
     required: true,
+  },
+  interviewerModel: {
+    type: String,
+    required: true,
+    enum: ['Admin', 'Employee', 'CompanyUser', 'User'],
+    default: 'Employee'
   },
   job: {
     type: mongoose.Schema.Types.ObjectId,

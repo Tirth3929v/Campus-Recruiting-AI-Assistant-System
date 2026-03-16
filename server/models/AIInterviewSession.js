@@ -50,7 +50,7 @@ const answerSchema = new mongoose.Schema({
 const aiInterviewSessionSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Student',
     required: true
   },
   job: {

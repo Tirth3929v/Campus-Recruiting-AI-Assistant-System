@@ -4,7 +4,7 @@ const companyProfileSchema = new mongoose.Schema({
   // Link to the user account that manages this profile
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'CompanyUser',
     required: true,
     unique: true
   },

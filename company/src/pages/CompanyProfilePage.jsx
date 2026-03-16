@@ -1,6 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Building2, Mail, MapPin, Globe, Users, Save, Upload, Loader2, CheckCircle, X } from 'lucide-react';
+
+import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance';
 
 const Reveal = ({ children, delay = 0, className = "" }) => {
     const ref = useRef(null);
@@ -16,25 +19,82 @@ const Reveal = ({ children, delay = 0, className = "" }) => {
 };
 
 const CompanyProfilePage = () => {
+    const { user, setUser } = useAuth();
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState(null);
+    const fileInputRef = useRef(null);
     const [formData, setFormData] = useState({
-        name: 'TechCorp Solutions',
-        email: 'hr@techcorp.com',
-        industry: 'Information Technology',
-        location: 'Bangalore, India',
-        website: 'https://techcorp.com',
-        employees: '500-1000',
-        description: 'Leading technology solutions provider specializing in cloud computing, AI/ML, and enterprise software development.',
+        name: '',
+        email: '',
+        industry: '',
+        location: '',
+        website: '',
+        employees: '',
+        description: '',
     });
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const res = await axiosInstance.get('/currentuser');
+                setFormData({
+                    name: res.data.name || '',
+                    email: res.data.email || '',
+                    industry: res.data.industry || '',
+                    location: res.data.location || '',
+                    website: res.data.website || '',
+                    employees: res.data.employeeCount || '',
+                    description: res.data.description || '',
+                });
+            } catch (err) { console.error(err); }
+        };
+        fetchProfile();
+    }, []);
+
+    const handlePhotoUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadData = new FormData();
+        uploadData.append('profilePicture', file);
+
+        setUploading(true);
+        try {
+            const res = await axiosInstance.put('/auth/profile', uploadData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (res.data.profilePicture) {
+                setUser({ ...user, profilePicture: res.data.profilePicture });
+                setMessage({ type: 'success', text: 'Logo updated!' });
+            }
+        } catch (err) {
+            console.error('Upload failed:', err);
+            setMessage({ type: 'error', text: 'Failed to upload logo' });
+        } finally {
+            setUploading(false);
+            setTimeout(() => setMessage(null), 3000);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
         setMessage(null);
-        // Simulate save
-        await new Promise(r => setTimeout(r, 1200));
-        setMessage({ type: 'success', text: 'Company profile updated!' });
+        try {
+            const res = await axiosInstance.put('/auth/profile', {
+                name: formData.name,
+                industry: formData.industry,
+                location: formData.location,
+                website: formData.website,
+                employeeCount: formData.employees,
+                description: formData.description
+            });
+            setUser({ ...user, ...res.data });
+            setMessage({ type: 'success', text: 'Company profile updated!' });
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Failed to update profile' });
+        }
         setSaving(false);
         setTimeout(() => setMessage(null), 4000);
     };
@@ -55,8 +115,18 @@ const CompanyProfilePage = () => {
                 <Reveal delay={0.1}>
                     <div className="glass-panel rounded-2xl p-7 flex flex-col sm:flex-row items-center gap-5">
                         <motion.div whileHover={{ scale: 1.05, rotate: 5 }}
-                            className="h-20 w-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-3xl font-bold shadow-xl shadow-amber-500/30 flex-shrink-0">
-                            {formData.name[0]}
+                            onClick={() => fileInputRef.current?.click()}
+                            className="h-20 w-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-3xl font-bold shadow-xl shadow-amber-500/30 flex-shrink-0 cursor-pointer overflow-hidden border-2 border-white/5 relative">
+                            {user?.profilePicture ? (
+                                <img src={`http://localhost:5001/${user.profilePicture}`} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                formData.name?.[0] || 'C'
+                            )}
+                            {uploading && (
+                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                    <Loader2 className="animate-spin text-white" size={20} />
+                                </div>
+                            )}
                         </motion.div>
                         <div className="text-center sm:text-left">
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">{formData.name}</h2>
@@ -122,8 +192,9 @@ const CompanyProfilePage = () => {
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Company Logo</label>
                             <motion.div whileHover={{ scale: 1.01, borderColor: "rgba(245, 158, 11, 0.4)" }}
+                                onClick={() => fileInputRef.current?.click()}
                                 className="border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-6 text-center hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-all relative cursor-pointer group">
-                                <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} className="hidden" accept="image/*" />
                                 <Upload className="mx-auto text-amber-500 group-hover:scale-110 transition-transform mb-2" size={28} />
                                 <p className="text-xs text-gray-500 font-medium">Click to upload logo (PNG, JPG)</p>
                             </motion.div>

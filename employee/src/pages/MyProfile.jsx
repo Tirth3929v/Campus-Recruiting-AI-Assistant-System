@@ -1,30 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, BookOpen, Save, Loader2, CheckCircle2 } from 'lucide-react';
+import { User, Mail, BookOpen, Save, Loader2, CheckCircle2, Camera } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axiosInstance';
 
 const MyProfile = () => {
-    const { user } = useAuth();
+    const { user, setUser } = useAuth();
     const [form, setForm] = useState({ name: '', course: '' });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = React.useRef(null);
 
     useEffect(() => {
-        axiosInstance.get('/user/profile')
+        axiosInstance.get('/currentuser')
             .then(res => setForm({ name: res.data.name || '', course: res.data.course || '' }))
             .catch(() => setForm({ name: user?.name || '', course: '' }))
             .finally(() => setLoading(false));
     }, [user]);
 
+    const handlePhotoUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('profilePicture', file);
+
+        setUploading(true);
+        try {
+            const res = await axiosInstance.put('/auth/profile', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (res.data.profilePicture) {
+                setUser({ ...user, profilePicture: res.data.profilePicture });
+            }
+        } catch (err) {
+            console.error('Upload failed:', err);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSave = async (e) => {
         e.preventDefault();
         setSaving(true);
         try {
-            await axiosInstance.put('/user/profile', form);
+            await axiosInstance.put('/auth/profile', form);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
+            // Refresh local tech user
+            setUser({ ...user, ...form });
         } catch (err) { console.error(err); }
         finally { setSaving(false); }
     };
@@ -45,8 +71,28 @@ const MyProfile = () => {
             {/* Avatar card */}
             <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
                 className="glass-card rounded-2xl p-6 flex items-center gap-5">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-3xl font-black shadow-lg">
-                    {form.name?.charAt(0)?.toUpperCase() || '?'}
+                <div className="relative group">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-3xl font-black shadow-lg overflow-hidden border-2 border-white/5">
+                        {user?.profilePicture ? (
+                            <img src={`http://localhost:5001/${user.profilePicture}`} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            form.name?.charAt(0)?.toUpperCase() || '?'
+                        )}
+                        
+                        {uploading && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                <Loader2 className="animate-spin text-white" size={20} />
+                            </div>
+                        )}
+                    </div>
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="absolute -bottom-2 -right-2 p-1.5 bg-emerald-500 rounded-lg text-white shadow-lg hover:bg-emerald-400 transition-colors border-2 border-[#0B1120] group-hover:scale-110 duration-200"
+                    >
+                        <Camera size={12} />
+                    </button>
+                    <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} className="hidden" accept="image/*" />
                 </div>
                 <div>
                     <h3 className="text-xl font-bold text-white">{form.name || 'Your Name'}</h3>

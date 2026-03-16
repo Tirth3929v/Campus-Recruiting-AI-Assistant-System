@@ -1,3 +1,10 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Users, Briefcase, FileText, TrendingUp, 
+  ArrowUpRight, Activity, Zap, Loader2, 
+  CheckCircle2, Database 
+} from 'lucide-react';
 import axiosInstance from '../api/axiosInstance';
 
 const containerVariants = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } };

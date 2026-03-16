@@ -9,16 +9,17 @@ const SupportTicket = require('../models/SupportTicket');
 // GET /api/admin/dashboard — real aggregate counts
 router.get('/dashboard', async (req, res) => {
     try {
-        const [totalUsers, activeJobs, totalApplications, totalInterviews, recentUsers] = await Promise.all([
+        const [totalUsers, activeJobs, totalApplications, totalInterviews, totalCompanies, recentUsers] = await Promise.all([
             User.countDocuments(),
             Job.countDocuments({ status: 'Open' }),
             Application.countDocuments(),
             AIInterviewSession.countDocuments(),
+            User.countDocuments({ role: 'company' }),
             User.find().sort({ createdAt: -1 }).limit(5).select('name email role createdAt')
         ]);
 
         res.json({
-            stats: { totalUsers, activeJobs, totalApplications, totalInterviews },
+            stats: { totalUsers, activeJobs, totalApplications, totalInterviews, totalCompanies },
             recentActivity: recentUsers.map(u => ({
                 id: u._id,
                 text: `${u.name} registered as ${u.role}`,

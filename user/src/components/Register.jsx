@@ -3,6 +3,7 @@ import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, BookOpen, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance';
 
 const Register = () => {
   const { user, loading: authLoading } = useAuth();
@@ -25,22 +26,11 @@ const Register = () => {
     setError('');
 
     try {
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        credentials: 'include'
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        window.location.href = '/student/dashboard';
-      } else {
-        setError(data.error || 'Registration failed');
-      }
+      const res = await axiosInstance.post('/register', formData);
+      if (res.data.token) localStorage.setItem('student_token', res.data.token);
+      navigate('/student/dashboard');
     } catch (err) {
-      setError('Failed to connect to server');
+      setError(err.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }

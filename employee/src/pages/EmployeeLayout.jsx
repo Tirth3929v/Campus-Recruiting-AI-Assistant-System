@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, BookOpen, Briefcase, User, LogOut, ChevronRight, Bell } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Briefcase, User, LogOut, ChevronRight, Bell, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import NotificationBell from '../components/NotificationBell';
 
@@ -14,6 +14,7 @@ const EmployeeLayout = () => {
         { path: '/employee/jobs', label: 'Job Board', icon: Briefcase },
         { path: '/employee/courses', label: 'Courses', icon: BookOpen },
         { path: '/employee/notifications/send', label: 'Send Notification', icon: Bell },
+        { path: '/employee/approvals', label: 'Approvals', icon: ShieldCheck },
         { path: '/employee/profile', label: 'My Profile', icon: User },
     ];
 
@@ -41,8 +42,12 @@ const EmployeeLayout = () => {
                 {/* User chip */}
                 <div className="px-4 pt-5 pb-2">
                     <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.1)' }}>
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-md">
-                            {(user?.name?.[0] || 'E').toUpperCase()}
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-md overflow-hidden border border-white/10">
+                            {user?.profilePicture ? (
+                                <img src={`http://localhost:5001/${user.profilePicture}`} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                (user?.name?.[0] || 'E').toUpperCase()
+                            )}
                         </div>
                         <div className="min-w-0">
                             <p className="text-sm font-semibold text-white truncate">{user?.name || 'Employee'}</p>

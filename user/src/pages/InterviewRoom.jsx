@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import axiosInstance from '../api/axiosInstance';
 import { 
   Play, Clock, ChevronRight, ChevronLeft, CheckCircle, XCircle, 
   Target, Brain, Zap, MessageSquare, Video, Mic, AlertCircle,
@@ -57,20 +58,12 @@ const InterviewRoom = () => {
   const handleStartInterview = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/ai-interview/generate-questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          focusAreas: selectedAreas,
-          difficulty
-        })
+      const res = await axiosInstance.post('/ai-interview/generate-questions', {
+        focusAreas: selectedAreas,
+        difficulty
       });
 
-      const data = await response.json();
+      const data = res.data;
       if (data.success) {
         setSessionId(data.sessionId);
         setQuestions(data.questions);
@@ -95,21 +88,14 @@ const InterviewRoom = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/ai-interview/evaluate-answer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          sessionId,
-          questionIndex: currentQuestion,
-          userAnswer: answer
-        })
+      // axiosInstance is configured to send token automatically
+      const response = await axiosInstance.post('/ai-interview/evaluate-answer', {
+        sessionId,
+        questionIndex: currentQuestion,
+        userAnswer: answer
       });
 
-      const data = await response.json();
+      const data = response.data;
       if (data.success) {
         setEvaluation(data.evaluation);
         setOverallScore(data.overallScore);
@@ -142,17 +128,10 @@ const InterviewRoom = () => {
   const handleFinishInterview = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/ai-interview/submit-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ sessionId })
-      });
+      // axiosInstance is configured to send token automatically
+      const response = await axiosInstance.post('/ai-interview/submit-session', { sessionId });
 
-      const data = await response.json();
+      const data = response.data;
       if (data.success) {
         setStep('results');
       }

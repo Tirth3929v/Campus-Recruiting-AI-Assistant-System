@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axiosInstance from '../api/axiosInstance';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
@@ -20,23 +21,12 @@ const Login = () => {
     setError('');
 
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        credentials: 'include'
-      });
+      const res = await axiosInstance.post('/login', formData);
 
-      const data = await res.json();
-
-      if (res.ok) {
-        if (data.token) localStorage.setItem('token', data.token);
-        window.location.href = '/student/dashboard';
-      } else {
-        setError(data.error || 'Login failed');
-      }
+      if (res.data.token) localStorage.setItem('student_token', res.data.token);
+      window.location.href = '/student/dashboard';
     } catch (err) {
-      setError('Failed to connect to server');
+      setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }

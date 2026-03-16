@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import axiosInstance from '../api/axiosInstance';
 import StreakWidget from '../components/StreakWidget';
 import MyLearningWidget from '../components/MyLearningWidget';
 
@@ -134,34 +135,30 @@ const Dashboard = () => {
         if (!user) return;
         const fetchData = async () => {
             try {
-                const res = await fetch('/api/dashboard', { credentials: 'include' });
-                if (res.ok) {
-                    const result = await res.json();
-                    setData(result);
-                    if (result.user?.weeklyGoal) setWeeklyGoal(result.user.weeklyGoal);
-                } else if (res.status === 401) { logout(); navigate('/login'); }
-            } catch (error) { console.error("Failed to fetch dashboard data", error); }
+                const res = await axiosInstance.get('/dashboard');
+                setData(res.data);
+                if (res.data.user?.weeklyGoal) setWeeklyGoal(res.data.user.weeklyGoal);
+            } catch (error) { 
+                console.error("Failed to fetch dashboard data", error); 
+            }
         };
         fetchData();
 
         // Fetch study resources
         const fetchResources = async () => {
             try {
-                const res = await fetch('/api/resources');
-                if (res.ok) setStudyResources(await res.json());
+                const res = await axiosInstance.get('/resources');
+                setStudyResources(res.data);
             } catch (error) { console.error("Failed to fetch resources", error); }
         };
         fetchResources();
-    }, [user, logout, navigate]);
+    }, [user, navigate]);
 
     useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMessages, showChat]);
 
     const handleSaveGoal = async () => {
         try {
-            const res = await fetch('/api/user/goal', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ weeklyGoal }), credentials: 'include'
-            });
+            await axiosInstance.post('/user/goal', { weeklyGoal });
             setShowGoalModal(false);
         } catch (e) { console.error(e); }
     };
@@ -174,14 +171,11 @@ const Dashboard = () => {
         setChatInput('');
         setIsLoading(true);
         try {
-            const res = await fetch('/api/chat', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userMessage.text, history: chatMessages }),
-                credentials: 'include'
+            const res = await axiosInstance.post('/chat', { 
+                message: userMessage.text, 
+                history: chatMessages 
             });
-            if (!res.ok) throw new Error(`Server Error: ${res.status}`);
-            const resData = await res.json();
-            setChatMessages(prev => [...prev, { role: 'model', text: resData.text }]);
+            setChatMessages(prev => [...prev, { role: 'model', text: res.data.text }]);
         } catch (e) {
             setChatMessages(prev => [...prev, { role: 'model', text: "⚠️ AI Offline. Please check if the backend server is running." }]);
         } finally { setIsLoading(false); }
@@ -420,12 +414,17 @@ const Dashboard = () => {
                                     whileTap={{ scale: 0.95 }}
                                     onClick={async () => {
                                         try {
-                                            const res = await fetch('/api/start-interview', {
-                                                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({ subject: 'General Interview' }), credentials: 'include'
+                                            const res = await axiosInstance.post('/start-interview', { 
+                                                subject: 'General Interview' 
                                             });
-                                            const data = await res.json();
-                                            if (res.ok) navigate('/student/interview', { state: { interviewId: data.interviewId, subject: 'General Interview' } });
+                                            if (res.data.interviewId) {
+                                                navigate('/student/interview', { 
+                                                    state: { 
+                                                        interviewId: res.data.interviewId, 
+                                                        subject: 'General Interview' 
+                                                    } 
+                                                });
+                                            }
                                         } catch (e) { console.error(e); }
                                     }}
                                     className="btn-gradient px-8 py-4 rounded-2xl flex items-center gap-3 text-lg font-bold"

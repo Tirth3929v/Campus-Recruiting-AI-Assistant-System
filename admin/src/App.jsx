@@ -16,6 +16,7 @@ import ManageJobs from './pages/ManageJobs';
 import ManageCandidates from './pages/ManageCandidates';
 import PendingApprovals from './pages/PendingApprovals';
 import SendNotification from './pages/SendNotification';
+import Profile from './components/Profile';
 
 const App = () => {
   return (
@@ -37,6 +38,7 @@ const App = () => {
                 <Route path="candidates" element={<ManageCandidates />} />
                 <Route path="pending" element={<PendingApprovals />} />
                 <Route path="notifications/send" element={<SendNotification />} />
+                <Route path="profile" element={<Profile />} />
               </Route>
             </Route>
 

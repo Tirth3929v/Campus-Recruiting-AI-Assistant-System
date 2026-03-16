@@ -25,7 +25,7 @@ const AdminLogin = () => {
     try {
       const res = await axiosInstance.post('/login', form);
       const data = res.data;
-      if (data.token) localStorage.setItem('token', data.token);
+      if (data.token) localStorage.setItem('admin_token', data.token);
       login(data.user);
       navigate('/dashboard');
     } catch (err) {
@@ -122,6 +122,7 @@ const AdminLogin = () => {
                   <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-blue-400 transition-colors duration-200 pointer-events-none" />
                   <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                     required placeholder="admin@campusrecruit.com"
+                    autoComplete="email"
                     className="w-full pl-11 pr-4 py-3.5 text-sm text-white placeholder-white/25 rounded-2xl outline-none transition-all duration-200"
                     style={{
                       background: 'rgba(148,163,184,0.06)',
@@ -148,6 +149,7 @@ const AdminLogin = () => {
                   <input type={showPassword ? 'text' : 'password'} value={form.password}
                     onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                     required placeholder="••••••••"
+                    autoComplete="current-password"
                     className="w-full pl-11 pr-12 py-3.5 text-sm text-white placeholder-white/25 rounded-2xl outline-none transition-all duration-200"
                     style={{
                       background: 'rgba(148,163,184,0.06)',

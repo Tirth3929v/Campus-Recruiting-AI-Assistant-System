@@ -3,8 +3,14 @@ const mongoose = require('mongoose');
 const notificationSchema = new mongoose.Schema({
     recipientId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        refPath: 'recipientModel',
         required: true
+    },
+    recipientModel: {
+        type: String,
+        required: true,
+        enum: ['Student', 'Admin', 'Employee', 'CompanyUser', 'User'],
+        default: 'Student'
     },
     title: {
         type: String,
@@ -25,7 +31,12 @@ const notificationSchema = new mongoose.Schema({
     },
     sentBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        refPath: 'senderModel'
+    },
+    senderModel: {
+        type: String,
+        enum: ['Student', 'Admin', 'Employee', 'CompanyUser', 'User'],
+        default: 'Admin'
     }
 }, { timestamps: true });
 

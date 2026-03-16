@@ -167,8 +167,12 @@ const CompanyLayout = () => {
                                 <p className="text-[11px] text-gray-500 dark:text-gray-400">Recruiter</p>
                             </div>
                             <motion.div whileHover={{ scale: 1.1 }}
-                                className="h-9 w-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-white dark:ring-slate-800 cursor-pointer text-sm">
-                                {(user?.name?.[0] || 'C').toUpperCase()}
+                                className="h-9 w-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-white dark:ring-slate-800 cursor-pointer text-sm overflow-hidden border border-white/5">
+                                {user?.profilePicture ? (
+                                    <img src={`http://localhost:5001/${user.profilePicture}`} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    (user?.name?.[0] || 'C').toUpperCase()
+                                )}
                             </motion.div>
                         </div>
                     </div>

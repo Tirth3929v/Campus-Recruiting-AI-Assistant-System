@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const mongoose = require('mongoose');
 
 // Import ALL Models
@@ -15,28 +15,36 @@ const SupportTicket = require('./models/SupportTicket');
 const StudyResource = require('./models/StudyResource');
 const LegacyInterview = require('./models/LegacyInterview');
 
+// Import db connection
+const connectDB = require('./config/db');
+
 // Connect to Database
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/campus_recruit')
-  .then(() => console.log('✅ Connected to MongoDB for seeding'))
-  .catch(err => { console.error('MongoDB connection error:', err); process.exit(1); });
+const startSeeding = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('âœ… Base connection established for seeding');
+    await seedData();
+  } catch (err) {
+    console.error('âŒ Fatal seeding error:', err);
+    process.exit(1);
+  }
+};
 
 const seedData = async () => {
   try {
-    console.log('\n🧹 Clearing ALL existing data...');
-    await Promise.all([
-      User.deleteMany({}),
-      CompanyProfile.deleteMany({}),
-      StudentProfile.deleteMany({}),
-      Job.deleteMany({}),
-      Application.deleteMany({}),
-      Course.deleteMany({}),
-      Enrollment.deleteMany({}),
-      AIInterviewSession.deleteMany({}),
-      CommunityPost.deleteMany({}),
-      SupportTicket.deleteMany({}),
-      StudyResource.deleteMany({}),
-      LegacyInterview.deleteMany({})
-    ]);
+    console.log('\nðŸ§¹ Clearing ALL existing data...');
+    await User.deleteMany({}, {maxTimeMS: 60000});
+    await CompanyProfile.deleteMany({}, {maxTimeMS: 60000});
+    await StudentProfile.deleteMany({}, {maxTimeMS: 60000});
+    await Job.deleteMany({}, {maxTimeMS: 60000});
+    await Application.deleteMany({}, {maxTimeMS: 60000});
+    await Course.deleteMany({}, {maxTimeMS: 60000});
+    await Enrollment.deleteMany({}, {maxTimeMS: 60000});
+    await AIInterviewSession.deleteMany({}, {maxTimeMS: 60000});
+    await CommunityPost.deleteMany({}, {maxTimeMS: 60000});
+    await SupportTicket.deleteMany({}, {maxTimeMS: 60000});
+    await StudyResource.deleteMany({}, {maxTimeMS: 60000});
+    await LegacyInterview.deleteMany({}, {maxTimeMS: 60000});
 
     // Drop stale indexes that may conflict (from prior schema versions)
     try {
@@ -45,12 +53,12 @@ const seedData = async () => {
       await db.collection('users').dropIndexes();
     } catch (e) { /* indexes may not exist, that's fine */ }
 
-    console.log('   ✓ All collections cleared\n');
+    console.log('   âœ“ All collections cleared\n');
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 1. USERS
-    // ═══════════════════════════════════════════════════════════
-    console.log('👤 Creating users...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ‘¤ Creating users...');
 
     const adminUser = await User.create({
       name: 'Admin User', email: 'admin@campusrecruit.com',
@@ -70,12 +78,12 @@ const seedData = async () => {
       { name: 'Charlie Davis', email: 'charlie@student.com', password: 'Student@123', role: 'student', course: 'MCA', isVerified: true, currentStreak: 3 },
       { name: 'Diana Evans', email: 'diana@student.com', password: 'Student@123', role: 'student', course: 'B.Tech IT', isVerified: true, currentStreak: 9 }
     ]);
-    console.log(`   ✓ Created 1 admin, ${companyUsers.length} company, ${studentUsers.length} students\n`);
+    console.log(`   âœ“ Created 1 admin, ${companyUsers.length} company, ${studentUsers.length} students\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 2. COMPANY PROFILES
-    // ═══════════════════════════════════════════════════════════
-    console.log('🏢 Creating company profiles...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ¢ Creating company profiles...');
     const companies = await CompanyProfile.create([
       {
         userId: companyUsers[0]._id, companyName: 'Tech Corp',
@@ -96,12 +104,12 @@ const seedData = async () => {
         logo: 'https://placehold.co/150x150/8b5cf6/ffffff?text=SX'
       }
     ]);
-    console.log(`   ✓ Created ${companies.length} company profiles\n`);
+    console.log(`   âœ“ Created ${companies.length} company profiles\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 3. STUDENT PROFILES
-    // ═══════════════════════════════════════════════════════════
-    console.log('🎓 Creating student profiles...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸŽ“ Creating student profiles...');
     const studentProfiles = await StudentProfile.create([
       {
         user: studentUsers[0]._id, phone: '9876543210', course: 'BCA Final Year',
@@ -134,12 +142,12 @@ const seedData = async () => {
         cgpa: 8.9, graduationYear: 2026, streak: 9, weeklyGoal: 4
       }
     ]);
-    console.log(`   ✓ Created ${studentProfiles.length} student profiles\n`);
+    console.log(`   âœ“ Created ${studentProfiles.length} student profiles\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 4. JOBS (12 jobs across 3 companies)
-    // ═══════════════════════════════════════════════════════════
-    console.log('💼 Creating jobs...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ’¼ Creating jobs...');
     const jobs = await Job.create([
       // Tech Corp jobs
       {
@@ -219,12 +227,12 @@ const seedData = async () => {
         salary: '$25/hr', status: 'Open', deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
       }
     ]);
-    console.log(`   ✓ Created ${jobs.length} jobs\n`);
+    console.log(`   âœ“ Created ${jobs.length} jobs\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 5. APPLICATIONS (students applying to jobs)
-    // ═══════════════════════════════════════════════════════════
-    console.log('📝 Creating applications...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ“ Creating applications...');
     const applicationData = [
       { job: jobs[0]._id, student: studentProfiles[0]._id, status: 'Applied', coverLetter: 'I am passionate about React and would love to contribute to your team.' },
       { job: jobs[0]._id, student: studentProfiles[1]._id, status: 'Shortlisted', coverLetter: 'My strong CS fundamentals and React experience make me a great fit.' },
@@ -258,12 +266,12 @@ const seedData = async () => {
         });
       }
     }
-    console.log(`   ✓ Created ${applications.length} applications\n`);
+    console.log(`   âœ“ Created ${applications.length} applications\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 6. AI INTERVIEW SESSIONS
-    // ═══════════════════════════════════════════════════════════
-    console.log('🤖 Creating AI interview sessions...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ¤– Creating AI interview sessions...');
     const sessionsData = [];
     const focusOptions = [['React', 'JavaScript'], ['Node.js', 'Express'], ['Python', 'ML'], ['System Design'], ['Communication', 'HR'], ['Data Structures', 'Algorithms']];
     const sessionTypes = ['Practice', 'Mock', 'Assessment'];
@@ -306,12 +314,12 @@ const seedData = async () => {
       }
     }
     const sessions = await AIInterviewSession.create(sessionsData);
-    console.log(`   ✓ Created ${sessions.length} AI interview sessions\n`);
+    console.log(`   âœ“ Created ${sessions.length} AI interview sessions\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 7. LEGACY INTERVIEWS (for backward compat)
-    // ═══════════════════════════════════════════════════════════
-    console.log('📋 Creating legacy interviews...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ“‹ Creating legacy interviews...');
     const legacyInterviews = await LegacyInterview.create([
       { userId: studentUsers[0]._id.toString(), date: 'Feb 18, 2026', subject: 'React JS', score: 85, status: 'Excellent' },
       { userId: studentUsers[0]._id.toString(), date: 'Feb 15, 2026', subject: 'Node.js Backend', score: 72, status: 'Good' },
@@ -319,12 +327,12 @@ const seedData = async () => {
       { userId: studentUsers[1]._id.toString(), date: 'Feb 20, 2026', subject: 'Machine Learning', score: 95, status: 'Outstanding' },
       { userId: studentUsers[1]._id.toString(), date: 'Feb 12, 2026', subject: 'Data Structures', score: 88, status: 'Excellent' },
     ]);
-    console.log(`   ✓ Created ${legacyInterviews.length} legacy interviews\n`);
+    console.log(`   âœ“ Created ${legacyInterviews.length} legacy interviews\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 8. COURSES
-    // ═══════════════════════════════════════════════════════════
-    console.log('📚 Creating courses...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ“š Creating courses...');
     const courses = await Course.create([
       {
         title: 'Mastering React 2024', description: 'A comprehensive guide to building modern web apps with React, Hooks, and Redux.',
@@ -371,12 +379,12 @@ const seedData = async () => {
         ]
       }
     ]);
-    console.log(`   ✓ Created ${courses.length} courses\n`);
+    console.log(`   âœ“ Created ${courses.length} courses\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 9. ENROLLMENTS
-    // ═══════════════════════════════════════════════════════════
-    console.log('📖 Creating enrollments...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ“– Creating enrollments...');
     const enrollments = await Enrollment.create([
       { student: studentProfiles[0]._id, course: courses[0]._id, progress: 65 },
       { student: studentProfiles[0]._id, course: courses[1]._id, progress: 100, completed: true, completionDate: new Date() },
@@ -387,15 +395,15 @@ const seedData = async () => {
       { student: studentProfiles[4]._id, course: courses[0]._id, progress: 90 },
       { student: studentProfiles[4]._id, course: courses[4]._id, progress: 10 }
     ]);
-    console.log(`   ✓ Created ${enrollments.length} enrollments\n`);
+    console.log(`   âœ“ Created ${enrollments.length} enrollments\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 10. COMMUNITY POSTS
-    // ═══════════════════════════════════════════════════════════
-    console.log('💬 Creating community posts...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ’¬ Creating community posts...');
     const posts = await CommunityPost.create([
       {
-        author: studentUsers[0]._id, content: 'Just completed my first mock interview on CampusRecruit! Got 85% on React. The AI feedback was incredibly detailed. Highly recommend everyone to try it! 🚀',
+        author: studentUsers[0]._id, content: 'Just completed my first mock interview on CampusRecruit! Got 85% on React. The AI feedback was incredibly detailed. Highly recommend everyone to try it! ðŸš€',
         tags: ['interview', 'react', 'experience'], likes: [studentUsers[1]._id, studentUsers[2]._id, studentUsers[4]._id],
         comments: [
           { author: studentUsers[1]._id, content: 'Congrats Tirth! What topics did they cover?' },
@@ -404,7 +412,7 @@ const seedData = async () => {
         ]
       },
       {
-        author: studentUsers[1]._id, content: 'Share your best interview tips! I\'ll start: Always ask clarifying questions before diving into the solution. It shows the interviewer you think critically. 💡',
+        author: studentUsers[1]._id, content: 'Share your best interview tips! I\'ll start: Always ask clarifying questions before diving into the solution. It shows the interviewer you think critically. ðŸ’¡',
         tags: ['tips', 'interview'], likes: [studentUsers[0]._id, studentUsers[2]._id, studentUsers[3]._id, studentUsers[4]._id],
         comments: [
           { author: studentUsers[2]._id, content: 'Great tip! I also recommend practicing STAR method for behavioral questions.' },
@@ -412,14 +420,14 @@ const seedData = async () => {
         ]
       },
       {
-        author: studentUsers[2]._id, content: 'Anyone else preparing for backend interviews? I created a study group for Node.js and System Design. DM me if interested! 📚',
+        author: studentUsers[2]._id, content: 'Anyone else preparing for backend interviews? I created a study group for Node.js and System Design. DM me if interested! ðŸ“š',
         tags: ['study-group', 'nodejs', 'system-design'], likes: [studentUsers[0]._id, studentUsers[3]._id],
         comments: [
           { author: studentUsers[0]._id, content: 'Count me in! I\'m also preparing for backend roles.' }
         ]
       },
       {
-        author: studentUsers[4]._id, content: 'Just won my 4th hackathon! 🏆 Built a real-time collaboration tool using React and WebSockets. The CampusRecruit mock interviews really helped me prepare for the pitch round.',
+        author: studentUsers[4]._id, content: 'Just won my 4th hackathon! ðŸ† Built a real-time collaboration tool using React and WebSockets. The CampusRecruit mock interviews really helped me prepare for the pitch round.',
         tags: ['hackathon', 'achievement'], likes: [studentUsers[0]._id, studentUsers[1]._id, studentUsers[2]._id, studentUsers[3]._id],
         comments: [
           { author: studentUsers[1]._id, content: 'You\'re on fire Diana! What was the project theme?' },
@@ -427,26 +435,26 @@ const seedData = async () => {
         ]
       },
       {
-        author: studentUsers[3]._id, content: 'Resource recommendation: The System Design Primer on GitHub is absolutely gold for anyone preparing for interviews. Combined with the mock interviews here, it\'s a game changer! 🎯',
+        author: studentUsers[3]._id, content: 'Resource recommendation: The System Design Primer on GitHub is absolutely gold for anyone preparing for interviews. Combined with the mock interviews here, it\'s a game changer! ðŸŽ¯',
         tags: ['resources', 'system-design'], likes: [studentUsers[0]._id, studentUsers[1]._id],
         comments: []
       },
       {
-        author: studentUsers[0]._id, content: 'Just got my first job offer from Tech Corp! 🎉 The AI interview practice on this platform was a game changer. Thank you CampusRecruit team!',
+        author: studentUsers[0]._id, content: 'Just got my first job offer from Tech Corp! ðŸŽ‰ The AI interview practice on this platform was a game changer. Thank you CampusRecruit team!',
         tags: ['success', 'job-offer'], likes: [studentUsers[1]._id, studentUsers[2]._id, studentUsers[3]._id, studentUsers[4]._id],
         comments: [
-          { author: studentUsers[1]._id, content: 'Congratulations Tirth! Well deserved! 🎉🎉' },
+          { author: studentUsers[1]._id, content: 'Congratulations Tirth! Well deserved! ðŸŽ‰ðŸŽ‰' },
           { author: studentUsers[2]._id, content: 'Inspiring! What role did you land?' },
           { author: studentUsers[4]._id, content: 'Amazing! You\'re going to do great things!' }
         ]
       }
     ]);
-    console.log(`   ✓ Created ${posts.length} community posts\n`);
+    console.log(`   âœ“ Created ${posts.length} community posts\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 11. SUPPORT TICKETS
-    // ═══════════════════════════════════════════════════════════
-    console.log('🎫 Creating support tickets...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸŽ« Creating support tickets...');
     const tickets = await SupportTicket.create([
       {
         user: studentUsers[0]._id, name: 'Tirth Patel', email: 'tirth@student.com',
@@ -469,12 +477,12 @@ const seedData = async () => {
         status: 'Closed'
       }
     ]);
-    console.log(`   ✓ Created ${tickets.length} support tickets\n`);
+    console.log(`   âœ“ Created ${tickets.length} support tickets\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 12. STUDY RESOURCES
-    // ═══════════════════════════════════════════════════════════
-    console.log('📌 Creating study resources...');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('ðŸ“Œ Creating study resources...');
     const resources = await StudyResource.create([
       { title: 'React Documentation', type: 'Documentation', link: 'https://react.dev', icon: 'BookOpen', category: 'Frontend' },
       { title: 'System Design Primer', type: 'Guide', link: 'https://github.com/donnemartin/system-design-primer', icon: 'Layers', category: 'Interview' },
@@ -483,15 +491,15 @@ const seedData = async () => {
       { title: 'Node.js Best Practices', type: 'Guide', link: 'https://github.com/goldbergyoni/nodebestpractices', icon: 'Code', category: 'Backend' },
       { title: 'MongoDB University', type: 'Course', link: 'https://university.mongodb.com', icon: 'BookOpen', category: 'Database' }
     ]);
-    console.log(`   ✓ Created ${resources.length} study resources\n`);
+    console.log(`   âœ“ Created ${resources.length} study resources\n`);
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // DONE!
-    // ═══════════════════════════════════════════════════════════
-    console.log('═══════════════════════════════════════════════');
-    console.log('✅ DATABASE SEEDED SUCCESSFULLY!');
-    console.log('═══════════════════════════════════════════════');
-    console.log('\n📊 Summary:');
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    console.log('â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•');
+    console.log('âœ… DATABASE SEEDED SUCCESSFULLY!');
+    console.log('â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•');
+    console.log('\nðŸ“Š Summary:');
     console.log(`   Users:              ${1 + companyUsers.length + studentUsers.length}`);
     console.log(`   Company Profiles:   ${companies.length}`);
     console.log(`   Student Profiles:   ${studentProfiles.length}`);
@@ -504,7 +512,7 @@ const seedData = async () => {
     console.log(`   Community Posts:    ${posts.length}`);
     console.log(`   Support Tickets:    ${tickets.length}`);
     console.log(`   Study Resources:    ${resources.length}`);
-    console.log('\n🔑 Login Credentials:');
+    console.log('\nðŸ”‘ Login Credentials:');
     console.log('   Admin:    admin@campusrecruit.com / Admin@123');
     console.log('   Company:  recruiter@techcorp.com / Recruiter@123');
     console.log('   Student:  tirth@student.com / Student@123');
@@ -512,9 +520,9 @@ const seedData = async () => {
 
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error seeding data:', error);
+    console.error('âŒ Error seeding data:', error);
     process.exit(1);
   }
 };
 
-seedData();
+startSeeding();

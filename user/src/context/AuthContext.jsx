@@ -18,24 +18,30 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Auth check failed:", error.response?.data?.error || error.message);
       setUser(null);
+      setLoading(false); // Immediate unlock on error
     } finally {
-      setLoading(false);
+      setLoading(false); // Robust unlock
     }
+  };
+
+  const login = async (token, userData) => {
+    localStorage.setItem('student_token', token);
+    setUser(userData);
   };
 
   const logout = async () => {
     try {
-      await axiosInstance.post('/logout');
+      await axiosInstance.post('/auth/logout');
     } catch (error) {
       console.error("Logout API failed:", error.message);
     }
-    localStorage.removeItem('token');
+    localStorage.removeItem('student_token');
     setUser(null);
     window.location.href = '/login';
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

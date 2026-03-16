@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, ArrowRight, CheckCircle } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
+import axiosInstance from '../api/axiosInstance';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -9,29 +10,20 @@ const ForgotPassword = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false); // New state for submission status
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setMessage('');
+    setMessage(''); // Clear message on new submission attempt
 
     try {
-      const res = await fetch('/api/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage(data.message);
-      } else {
-        setError(data.error || 'Request failed');
-      }
+      await axiosInstance.post('/forgot-password', { email });
+      setSubmitted(true);
+      setMessage('If an account with that email exists, we have sent a password reset link to your email address.'); // Set a generic success message
     } catch (err) {
-      setError('Failed to connect to server');
+      setError(err.response?.data?.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }

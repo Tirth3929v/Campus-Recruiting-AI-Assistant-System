@@ -6,6 +6,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axiosInstance from '../api/axiosInstance';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import Editor from '@monaco-editor/react';
+
+// Quill config (react-quill-new handles React 18 better and usually supports Quill 2.0 features)
 
 const Toast = ({ type, message }) => {
     const styles = {
@@ -29,6 +34,27 @@ const Toast = ({ type, message }) => {
 const fieldBase = 'w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all';
 const fieldStyle = { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' };
 const labelCls = 'block text-xs font-bold text-white/30 uppercase tracking-widest mb-1.5';
+
+const QUILL_MODULES = {
+    toolbar: [
+        [{ 'header': [1, 2, 3, false] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'align': [] }],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['link', 'image'],
+        ['table'],
+        ['clean']
+    ],
+    table: true
+};
+
+const QUILL_FORMATS = [
+    'header', 'size',
+    'bold', 'italic', 'underline', 'strike',
+    'align', 'list', 'bullet',
+    'link', 'image', 'table'
+];
 
 const CourseBuilder = () => {
     const [courseData, setCourseData] = useState({
@@ -68,7 +94,14 @@ const CourseBuilder = () => {
 
     const addChapter = () => {
         const newId = `chap_${Date.now()}`;
-        setChapters(prev => [...prev, { chapterId: newId, title: '', content: '', videoUrl: '', order: prev.length + 1 }]);
+        setChapters(prev => [...prev, { 
+            chapterId: newId, 
+            title: '', 
+            content: '', 
+            videoUrl: '', 
+            interactiveCodes: [],
+            order: prev.length + 1 
+        }]);
     };
 
     const removeChapter = (id) => {
@@ -281,13 +314,84 @@ const CourseBuilder = () => {
                                                     </div>
                                                     <div>
                                                         <label className={labelCls}>Content / Learning Material *</label>
-                                                        <textarea rows={6} value={chapter.content}
-                                                            onChange={e => updateChapter(chapter.chapterId, 'content', e.target.value)}
-                                                            placeholder="Paste or type your chapter content here…"
-                                                            className={`${fieldBase} resize-y font-mono text-sm leading-relaxed`} style={fieldStyle} />
-                                                        <p className="text-xs text-white/20 mt-1 flex items-center gap-1">
-                                                            <FileText size={10} /> Supports plain text, Markdown, or HTML
+                                                        <div className="rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                                                            <ReactQuill 
+                                                                theme="snow"
+                                                                value={chapter.content}
+                                                                onChange={(val) => updateChapter(chapter.chapterId, 'content', val)}
+                                                                modules={QUILL_MODULES}
+                                                                formats={QUILL_FORMATS}
+                                                                className="quill-dark-editor"
+                                                            />
+                                                        </div>
+                                                        <p className="text-xs text-white/20 mt-2 flex items-center gap-1">
+                                                            <FileText size={10} /> Word-like Rich Text Editor (Supports Tables & Formatting)
                                                         </p>
+                                                    </div>
+
+                                                    {/* Interactive Code Blocks Manager */}
+                                                    <div className="space-y-4 pt-4 border-t border-white/5">
+                                                        <div className="flex items-center justify-between">
+                                                            <label className={labelCls}>Interactive Code Blocks</label>
+                                                            <button 
+                                                                onClick={() => {
+                                                                    const newCodes = [...(chapter.interactiveCodes || []), { title: 'New Example', initialCode: '<!-- Write HTML/JS here -->' }];
+                                                                    updateChapter(chapter.chapterId, 'interactiveCodes', newCodes);
+                                                                }}
+                                                                className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 px-2 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20 transition-all"
+                                                            >
+                                                                <PlusCircle size={12} /> Add Code Block
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="space-y-4">
+                                                            {(chapter.interactiveCodes || []).map((codeBlock, cIdx) => (
+                                                                <div key={cIdx} className="p-4 rounded-xl bg-black/30 border border-white/5 space-y-3">
+                                                                    <div className="flex items-center justify-between gap-3">
+                                                                        <input 
+                                                                            type="text"
+                                                                            value={codeBlock.title}
+                                                                            onChange={(e) => {
+                                                                                const newCodes = [...chapter.interactiveCodes];
+                                                                                newCodes[cIdx].title = e.target.value;
+                                                                                updateChapter(chapter.chapterId, 'interactiveCodes', newCodes);
+                                                                            }}
+                                                                            placeholder="Block Title (e.g. Try it Yourself)"
+                                                                            className="bg-transparent text-sm font-bold text-white border-0 focus:ring-0 p-0 w-full"
+                                                                        />
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                const newCodes = chapter.interactiveCodes.filter((_, i) => i !== cIdx);
+                                                                                updateChapter(chapter.chapterId, 'interactiveCodes', newCodes);
+                                                                            }}
+                                                                            className="text-white/20 hover:text-red-400 transition-colors"
+                                                                        >
+                                                                            <Trash2 size={14} />
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className="h-48 rounded-lg overflow-hidden border border-white/10">
+                                                                        <Editor
+                                                                            height="100%"
+                                                                            defaultLanguage="html"
+                                                                            theme="vs-dark"
+                                                                            value={codeBlock.initialCode}
+                                                                            onChange={(val) => {
+                                                                                const newCodes = [...chapter.interactiveCodes];
+                                                                                newCodes[cIdx].initialCode = val || '';
+                                                                                updateChapter(chapter.chapterId, 'interactiveCodes', newCodes);
+                                                                            }}
+                                                                            options={{
+                                                                                minimap: { enabled: false },
+                                                                                fontSize: 12,
+                                                                                scrollBeyondLastLine: false,
+                                                                                lineNumbers: 'on',
+                                                                                automaticLayout: true
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                     <div>
                                                         <label className={labelCls}><span className="flex items-center gap-1"><Video size={11} /> Video URL (optional)</span></label>

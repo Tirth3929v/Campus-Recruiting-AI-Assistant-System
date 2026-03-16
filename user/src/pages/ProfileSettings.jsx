@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, BookOpen, Camera, Save, Upload, FileText, Download, X, Trash2, Lock, ShieldCheck, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance';
 
 const ProfileSettings = () => {
   const { user } = useAuth();
@@ -28,34 +29,52 @@ const ProfileSettings = () => {
   });
 
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [profilePicture, setProfilePicture] = useState(null); // New state for avatar file
+  const [status, setStatus] = useState({ type: '', message: '' }); // New state for status messages
+  const [loading, setLoading] = useState(false); // New state for loading indicator
+
   const fileInputRef = useRef(null);
   const resumeInputRef = useRef(null);
 
   useEffect(() => {
     document.title = "Profile Settings | Campus Recruit";
     const fetchProfile = async () => {
-      const res = await fetch('/api/user', { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        setFormData({ 
-          ...data, 
-          twoFactorEnabled: !!data.twoFactorEnabled,
-          emailNotifications: data.emailNotifications !== 0,
-          pushNotifications: data.pushNotifications !== 0
-        });
+    try {
+      const res = await axiosInstance.get('/user');
+      const userData = res.data;
+      setFormData({
+        name: userData.name || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        course: userData.course || '',
+        bio: userData.bio || '',
+        skills: userData.skills || '',
+        resume: userData.resume || null, // Assuming userData.resume might be a URL or path
+        resumeName: userData.resumeName || '', // Assuming userData.resumeName is available
+        twoFactorEnabled: !!userData.twoFactorEnabled,
+        emailNotifications: userData.emailNotifications !== 0,
+        pushNotifications: userData.pushNotifications !== 0
+      });
+      if (userData.avatar) {
+        setAvatarPreview(userData.avatar); // Assuming userData.avatar is a URL
       }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setStatus({ type: 'error', message: err.response?.data?.message || 'Failed to fetch profile' });
+    }
     };
     fetchProfile();
   }, []);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setProfilePicture(file); // Store the file itself
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result);
@@ -67,11 +86,7 @@ const ProfileSettings = () => {
   const handleResumeChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, resume: reader.result, resumeName: file.name }));
-      };
-      reader.readAsDataURL(file);
+      setFormData(prev => ({ ...prev, resume: file, resumeName: file.name })); // Store the file itself
     }
   };
 
@@ -85,38 +100,54 @@ const ProfileSettings = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch('/api/user', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-      credentials: 'include'
-    });
-    if (res.ok) {
-      alert("Profile updated successfully!");
+    setLoading(true);
+    setStatus({ type: '', message: '' });
+
+    try {
+      const data = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (key === 'resume' && formData[key] instanceof File) {
+          data.append(key, formData[key]);
+        } else if (key !== 'resumeName') { // resumeName is derived, not sent
+          data.append(key, formData[key]);
+        }
+      });
+      if (profilePicture) data.append('avatar', profilePicture); // Use 'avatar' as the field name for profile picture
+
+      const res = await axiosInstance.put('/user', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setUser(res.data); // Update user context if available
+      setStatus({ type: 'success', message: 'Profile updated successfully!' });
+    } catch (err) {
+      setStatus({ type: 'error', message: err.response?.data?.message || 'Failed to update profile' });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert("New passwords do not match!");
+      setStatus({ type: 'error', message: "New passwords do not match!" });
       return;
     }
+    setStatus({ type: '', message: '' });
+    setLoading(true);
 
     try {
-      const res = await fetch('/api/user/password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          currentPassword: passwordForm.currentPassword, 
-          newPassword: passwordForm.newPassword 
-        }),
-        credentials: 'include'
+      await axiosInstance.put('/user/password', { 
+        currentPassword: passwordForm.currentPassword, 
+        newPassword: passwordForm.newPassword 
       });
-      const data = await res.json();
-      if (res.ok) { alert("Password updated successfully!"); setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' }); }
-      else alert(data.error || "Failed to update password");
-    } catch (e) { console.error(e); }
+      setStatus({ type: 'success', message: 'Password updated successfully!' });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      setStatus({ type: 'error', message: err.response?.data?.message || 'Failed to update password' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
